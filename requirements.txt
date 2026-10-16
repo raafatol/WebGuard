@@ -1,0 +1,14 @@
+# WebGuard v0.7 - Dependencias principales
+
+# API y servidor web
+fastapi==0.143.2
+uvicorn==0.54.0
+
+# Analisis HTTP
+httpx==0.28.1
+
+# Monitorizacion periodica
+APScheduler==3.11.3
+
+# Servidor SMTP local de pruebas
+aiosmtpd==1.4.6

@@ -1,0 +1,4 @@
+-r requirements.txt
+
+# Herramientas para ejecutar las pruebas automatizadas
+pytest==9.1.1
