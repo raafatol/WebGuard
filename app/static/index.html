@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGuard | Website Security Monitoring</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/script.js" defer></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">⬡</span>
+            <span>WebGuard</span>
+        </div>
+        <span class="version">Versión 0.6.0</span>
+    </header>
+
+    <main class="container">
+
+        <section class="intro">
+            <h1>Monitoriza la seguridad de tu web</h1>
+            <p>
+                Analiza certificados TLS, cabeceras HTTP,
+                consulta recomendaciones de seguridad
+                y detecta cambios en tus sitios web.
+            </p>
+        </section>
+
+        <!-- ANALIZADOR -->
+
+        <section class="search-panel">
+            <form id="analyze-form">
+                <label for="domain">
+                    Dominio que quieres analizar
+                </label>
+
+                <div class="search-row">
+                    <input
+                        type="text"
+                        id="domain"
+                        placeholder="Introduce un dominio (ej. www.google.com)"
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" id="analyze-btn">
+                        Analizar seguridad
+                    </button>
+                </div>
+
+                <p class="hint">
+                    Introduce el dominio sin https://
+                </p>
+            </form>
+
+            <p id="message" role="status"></p>
+        </section>
+
+        <!-- RESULTADOS -->
+
+        <section id="results" class="results" hidden>
+            <h2>
+                Resultados de seguridad:
+                <span id="result-domain"></span>
+            </h2>
+
+            <div class="cards">
+                <article class="card">
+                    <h3>Certificado TLS</h3>
+                    <p id="tls-status"></p>
+                    <p id="tls-expiry"></p>
+                </article>
+
+                <article class="card">
+                    <h3>Respuesta HTTP</h3>
+                    <p id="http-status"></p>
+                    <p>
+                        Cabeceras detectadas:
+                        <strong id="headers-count"></strong>
+                    </p>
+                </article>
+            </div>
+
+            <article class="card headers-card">
+                <h3>Cabeceras de seguridad</h3>
+                <div id="headers-list"></div>
+            </article>
+
+            <article class="card recommendations-card">
+                <h3>Recomendaciones de seguridad</h3>
+                <p class="recommendations-intro">
+                    Consulta las configuraciones detectadas
+                    y las posibles mejoras para tu sitio web.
+                </p>
+                <div id="recommendations-list"></div>
+            </article>
+        </section>
+
+        <!-- DOMINIOS -->
+
+        <section class="domains-panel">
+            <h2>Mis dominios</h2>
+
+            <p class="domains-description">
+                Gestiona los dominios que quieres monitorizar,
+                consulta su estado y revisa sus análisis anteriores.
+            </p>
+
+            <form id="domain-form" class="domain-form">
+                <input
+                    type="text"
+                    id="new-domain"
+                    placeholder="Introduce un dominio (ej. example.com)"
+                    aria-label="Nuevo dominio"
+                    autocomplete="off"
+                    required
+                >
+                <button type="submit" id="add-domain-btn">
+                    Añadir dominio
+                </button>
+            </form>
+
+            <p id="domain-message" role="status"></p>
+            <div id="domains-list"></div>
+        </section>
+
+        <!-- ALERTAS DE SEGURIDAD -->
+
+        <section class="alerts-panel" aria-labelledby="alerts-title">
+            <div class="alerts-heading">
+                <div>
+                    <h2 id="alerts-title">Alertas de seguridad</h2>
+                    <p class="alerts-description">
+                        Consulta los cambios detectados
+                        durante la monitorización de tus dominios.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    id="refresh-alerts-btn"
+                    class="refresh-alerts-btn"
+                >
+                    Actualizar alertas
+                </button>
+            </div>
+
+            <p
+                id="alerts-message"
+                role="status"
+                aria-live="polite"
+            >
+                Cargando alertas...
+            </p>
+
+            <div id="alerts-list" class="alerts-list"></div>
+        </section>
+
+        <!-- HISTORIAL -->
+
+        <section id="history-panel" class="history-panel" hidden>
+            <div class="history-heading">
+                <div>
+                    <h2>Historial de seguridad</h2>
+                    <p id="history-domain"></p>
+                </div>
+
+                <button
+                    type="button"
+                    id="close-history-btn"
+                    class="cancel-btn"
+                >
+                    Cerrar
+                </button>
+            </div>
+
+            <p id="history-message" role="status"></p>
+
+            <div class="history-table-wrapper">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Certificado TLS</th>
+                            <th>HTTP</th>
+                            <th>Cabeceras</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CONFIRMACIÓN DE ELIMINACIÓN -->
+
+    <dialog id="delete-modal" class="delete-modal">
+        <div class="modal-content">
+            <div class="modal-icon">⚠</div>
+            <h2>¿Eliminar dominio?</h2>
+
+            <p>
+                ¿Estás seguro de que quieres eliminar
+                <strong id="delete-domain-name"></strong>
+                de WebGuard?
+            </p>
+
+            <p class="modal-hint">
+                El dominio dejará de aparecer en tu panel.
+            </p>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    id="cancel-delete-btn"
+                    class="cancel-btn"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    id="confirm-delete-btn"
+                    class="confirm-delete-btn"
+                >
+                    Eliminar dominio
+                </button>
+            </div>
+        </div>
+    </dialog>
+
+</body>
+</html>
