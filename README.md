@@ -1,5 +1,11 @@
 # WebGuard 🛡️
 
+## Dashboard Preview
+
+![WebGuard security analysis dashboard](docs/images/webguard-dashboard.png)
+
+*Example security analysis of www.google.com showing TLS certificate information, HTTP security headers, and security recommendations.*
+
 **WebGuard** is a Python-based web security monitoring application that analyzes website security configurations, detects changes over time, and generates alerts.
 
 The project provides a local web dashboard, a REST API, persistent analysis history, scheduled monitoring, and email notifications through SMTP.
