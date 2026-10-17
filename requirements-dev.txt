@@ -2,3 +2,7 @@
 
 # Herramientas para ejecutar las pruebas automatizadas
 pytest==9.1.1
+
+# Herramientas de análisis de seguridad
+bandit==1.9.4
+pip-audit==2.10.1
