@@ -36,3 +36,6 @@ Thumbs.db
 # Archivos temporales y registros
 *.log
 *.tmp
+
+# Copias de seguridad de la base de datos
+backups/

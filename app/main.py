@@ -13,6 +13,7 @@ from app.database.db import init_db
 from app.database.domain_repository import (
     add_domain,
     get_domains,
+    get_domains_by_client,
     delete_domain
 )
 from app.database.analysis_repository import (
@@ -22,6 +23,13 @@ from app.database.analysis_repository import (
 )
 
 from app.database.alert_repository import get_alerts
+from app.database.client_repository import (
+    add_client,
+    get_clients,
+    get_client_by_id,
+    update_client,
+    delete_client
+)
 
 
 app = FastAPI(
@@ -43,8 +51,15 @@ app.mount(
 init_db()
 
 
+
 class DomainCreate(BaseModel):
     domain: str
+    client_id: int | None = None
+
+
+class ClientCreate(BaseModel):
+    name: str
+    email: str | None = None
 
 
 # =========================================
@@ -93,11 +108,19 @@ def list_domains():
     return get_domains()
 
 
+
 @app.post("/domains", status_code=201)
 def create_domain(data: DomainCreate):
+    """
+    Registra un dominio y permite asociarlo
+    opcionalmente a un cliente.
+    """
 
     try:
-        return add_domain(data.domain)
+        return add_domain(
+            data.domain,
+            data.client_id
+        )
 
     except ValueError as error:
         raise HTTPException(
@@ -181,3 +204,123 @@ def list_alerts(domain: str | None = None):
     únicamente las alertas de ese dominio.
     """
     return get_alerts(domain)
+
+
+# =========================================
+# GESTIÓN DE CLIENTES - WEBGUARD v0.8
+# =========================================
+
+@app.get("/clients")
+def list_clients():
+    """
+    Devuelve todos los clientes registrados
+    en WebGuard.
+    """
+    return get_clients()
+
+
+@app.post("/clients", status_code=201)
+def create_client(data: ClientCreate):
+    """
+    Registra un nuevo cliente en WebGuard.
+    """
+
+    try:
+        return add_client(data.name, data.email)
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        )
+
+
+@app.get("/clients/{client_id}")
+def get_client(client_id: int):
+    """
+    Recupera un cliente mediante su identificador.
+    """
+
+    client = get_client_by_id(client_id)
+
+    if client is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Cliente no encontrado"
+        )
+
+    return client
+
+
+@app.put("/clients/{client_id}")
+def edit_client(client_id: int, data: ClientCreate):
+    """
+    Actualiza el nombre y el correo
+    electrónico de un cliente.
+    """
+
+    try:
+        updated_client = update_client(
+            client_id,
+            data.name,
+            data.email
+        )
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        )
+
+    if updated_client is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Cliente no encontrado"
+        )
+
+    return updated_client
+
+
+@app.delete("/clients/{client_id}")
+def remove_client(client_id: int):
+    """
+    Elimina un cliente si no tiene
+    dominios asociados.
+    """
+
+    try:
+        deleted = delete_client(client_id)
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=409,
+            detail=str(error)
+        )
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Cliente no encontrado"
+        )
+
+    return {
+        "message": "Cliente eliminado correctamente"
+    }
+
+
+@app.get("/clients/{client_id}/domains")
+def list_client_domains(client_id: int):
+    """
+    Devuelve los dominios asociados
+    a un cliente concreto.
+    """
+
+    client = get_client_by_id(client_id)
+
+    if client is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Cliente no encontrado"
+        )
+
+    return get_domains_by_client(client_id)
