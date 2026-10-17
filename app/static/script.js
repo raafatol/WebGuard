@@ -732,3 +732,56 @@ refreshAlertsBtn.addEventListener("click", loadAlerts);
 
 // Cargar las alertas al abrir WebGuard
 loadAlerts();
+
+
+
+/* =========================================
+   WEBGUARD v0.8 - NAVEGACIÓN
+========================================= */
+
+const navigationButtons = document.querySelectorAll(
+    ".sidebar .nav-item"
+);
+
+const appSections = document.querySelectorAll(
+    ".app-section"
+);
+
+function navigateTo(section) {
+    const targetSection = document.getElementById(
+        `section-${section}`
+    );
+
+    if (!targetSection) {
+        console.error(`Sección no encontrada: ${section}`);
+        return;
+    }
+
+    // Ocultar todas las secciones excepto la seleccionada.
+    appSections.forEach(panel => {
+        panel.hidden = panel !== targetSection;
+    });
+
+    // Actualizar el botón activo.
+    navigationButtons.forEach(button => {
+        const isActive = button.dataset.section === section;
+
+        button.classList.toggle("active", isActive);
+
+        if (isActive) {
+            button.setAttribute("aria-current", "page");
+        } else {
+            button.removeAttribute("aria-current");
+        }
+    });
+}
+
+// Registrar los eventos de navegación.
+navigationButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        navigateTo(button.dataset.section);
+    });
+});
+
+// Mostrar Resumen al iniciar WebGuard.
+navigateTo("overview");
