@@ -12,3 +12,5 @@ APScheduler==3.11.3
 
 # Servidor SMTP local de pruebas
 aiosmtpd==1.4.6
+reportlab==5.0.1
+pypdf==6.21.1

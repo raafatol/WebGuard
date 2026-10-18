@@ -39,3 +39,5 @@ Thumbs.db
 
 # Copias de seguridad de la base de datos
 backups/
+# Informes PDF generados
+/reports/
