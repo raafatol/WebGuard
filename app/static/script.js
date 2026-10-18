@@ -785,3 +785,258 @@ navigationButtons.forEach(button => {
 
 // Mostrar Resumen al iniciar WebGuard.
 navigateTo("overview");
+
+
+/* =========================================
+   WEBGUARD v0.8 — GESTIÓN DE CLIENTES
+========================================= */
+
+const clientForm = document.getElementById("client-form");
+const clientNameInput = document.getElementById("client-name");
+const clientEmailInput = document.getElementById("client-email");
+const createClientBtn = document.getElementById("create-client-btn");
+const clientMessage = document.getElementById("client-message");
+const clientsList = document.getElementById("clients-list");
+
+// Consultar los clientes registrados
+async function loadClients() {
+    clientsList.replaceChildren();
+
+    const loading = document.createElement("p");
+    loading.className = "clients-empty";
+    loading.textContent = "Cargando clientes...";
+    clientsList.appendChild(loading);
+
+    try {
+        const response = await fetch("/clients");
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                getErrorMessage(data, "No se pudieron cargar los clientes")
+            );
+        }
+
+        if (!Array.isArray(data)) {
+            throw new Error("La respuesta de clientes no es válida");
+        }
+
+        clientsList.replaceChildren();
+
+        if (data.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "clients-empty";
+            empty.textContent = "Todavía no has registrado clientes.";
+            clientsList.appendChild(empty);
+            return;
+        }
+
+        for (const client of data) {
+            const item = document.createElement("div");
+            item.className = "client-item";
+
+            const details = document.createElement("div");
+            details.className = "client-details";
+
+            const name = document.createElement("strong");
+            name.className = "client-item-name";
+            name.textContent = client.name;
+
+            const email = document.createElement("p");
+            email.className = "client-item-email";
+            email.textContent = client.email || "Sin correo electrónico";
+
+            
+            details.append(name, email);
+
+            const actions = document.createElement("div");
+            actions.className = "client-actions";
+
+            const editBtn = document.createElement("button");
+            editBtn.type = "button";
+            editBtn.className = "client-edit-btn";
+            editBtn.textContent = "Editar";
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.type = "button";
+            deleteBtn.className = "client-delete-btn";
+            deleteBtn.textContent = "Eliminar";
+
+            
+            editBtn.addEventListener("click", async () => {
+                const newName = window.prompt(
+                    "Nuevo nombre del cliente:",
+                    client.name
+                );
+
+                if (newName === null) return;
+
+                const name = newName.trim();
+
+                if (!name) {
+                    setStatus(
+                        clientMessage,
+                        "El nombre del cliente no puede estar vacío.",
+                        "error"
+                    );
+                    return;
+                }
+
+                const newEmail = window.prompt(
+                    "Nuevo correo electrónico (puedes dejarlo vacío):",
+                    client.email || ""
+                );
+
+                if (newEmail === null) return;
+
+                const email = newEmail.trim();
+
+                editBtn.disabled = true;
+                deleteBtn.disabled = true;
+
+                try {
+                    const response = await fetch(`/clients/${client.id}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            name,
+                            email: email || null
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(
+                            getErrorMessage(data, "No se pudo actualizar el cliente")
+                        );
+                    }
+
+                    await loadClients();
+
+                    setStatus(
+                        clientMessage,
+                        "Cliente actualizado correctamente.",
+                        "ok"
+                    );
+
+                } catch (error) {
+                    setStatus(clientMessage, error.message, "error");
+                    editBtn.disabled = false;
+                    deleteBtn.disabled = false;
+                }
+            });
+
+            
+            deleteBtn.addEventListener("click", async () => {
+                const confirmed = window.confirm(
+                    `¿Seguro que quieres eliminar al cliente "${client.name}"?\n\n` +
+                    "Esta acción no se puede deshacer."
+                );
+
+                if (!confirmed) return;
+
+                editBtn.disabled = true;
+                deleteBtn.disabled = true;
+
+                try {
+                    const response = await fetch(`/clients/${client.id}`, {
+                        method: "DELETE"
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json();
+
+                        throw new Error(
+                            getErrorMessage(
+                                data,
+                                "No se pudo eliminar el cliente"
+                            )
+                        );
+                    }
+
+                    await loadClients();
+
+                    setStatus(
+                        clientMessage,
+                        "Cliente eliminado correctamente.",
+                        "ok"
+                    );
+
+                } catch (error) {
+                    setStatus(clientMessage, error.message, "error");
+
+                    editBtn.disabled = false;
+                    deleteBtn.disabled = false;
+                }
+            });
+
+
+            actions.append(editBtn, deleteBtn);
+            item.append(details, actions);
+            clientsList.appendChild(item);
+
+        }
+
+    } catch (error) {
+        clientsList.replaceChildren();
+        setStatus(clientMessage, error.message, "error");
+    }
+}
+
+// Registrar un nuevo cliente
+clientForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const name = clientNameInput.value.trim();
+    const email = clientEmailInput.value.trim();
+
+    if (!name) {
+        setStatus(clientMessage, "Introduce el nombre del cliente.", "error");
+        return;
+    }
+
+    createClientBtn.disabled = true;
+    setStatus(clientMessage, "Creando cliente...");
+
+    try {
+        const response = await fetch("/clients", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email: email || null
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                getErrorMessage(data, "No se pudo crear el cliente")
+            );
+        }
+
+        clientForm.reset();
+
+        await loadClients();
+
+        setStatus(
+            clientMessage,
+            "Cliente creado correctamente.",
+            "ok"
+        );
+
+    } catch (error) {
+        setStatus(clientMessage, error.message, "error");
+    } finally {
+        createClientBtn.disabled = false;
+    }
+});
+
+// Cargar clientes al iniciar WebGuard
+loadClients();

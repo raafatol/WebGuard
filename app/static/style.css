@@ -1102,3 +1102,200 @@ label {
     font-size: 21px;
     letter-spacing: -0.3px;
 }
+
+
+
+/* =========================================
+   WEBGUARD v0.8 — GESTIÓN DE CLIENTES
+========================================= */
+
+.clients-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 28px;
+    margin-top: 24px;
+}
+
+.clients-heading {
+    margin-bottom: 24px;
+}
+
+.clients-heading h2 {
+    color: var(--text-primary);
+    font-size: 21px;
+    margin: 0 0 8px;
+}
+
+.clients-heading p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.client-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+    gap: 16px;
+}
+
+.client-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.client-field label {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.client-field input {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    box-sizing: border-box;
+}
+
+#create-client-btn {
+    min-height: 46px;
+    padding: 0 22px;
+    background: var(--accent);
+    color: var(--bg-primary);
+    border: 0;
+    border-radius: 8px;
+    font-weight: 650;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#create-client-btn:hover {
+    background: var(--accent-hover);
+}
+
+#create-client-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+#client-message {
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+#clients-list {
+    min-height: 80px;
+}
+
+.clients-empty {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: center;
+    padding: 24px 12px;
+}
+
+@media (max-width: 1100px) {
+    .client-form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #create-client-btn {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 700px) {
+    .client-form {
+        grid-template-columns: 1fr;
+    }
+
+    #create-client-btn {
+        grid-column: auto;
+    }
+
+    .clients-panel {
+        padding: 20px;
+    }
+}
+
+
+
+/* WEBGUARD v0.8 — LISTADO DE CLIENTES */
+
+.client-item {
+    padding: 18px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.client-item:last-child {
+    border-bottom: none;
+}
+
+.client-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.client-item-name {
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.client-item-email {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 0;
+}
+
+
+
+/* WEBGUARD v0.8 — ACCIONES DE CLIENTES */
+
+.client-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.client-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.client-actions button {
+    padding: 9px 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.client-edit-btn {
+    background: #263449;
+    border: 1px solid #334155;
+    color: #F1F5F9;
+}
+
+.client-delete-btn {
+    background: transparent;
+    border: 1px solid #F87171;
+    color: #F87171;
+}
+
+.client-actions button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .client-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

@@ -125,12 +125,71 @@
             <div class="intro">
                 <h1>Clientes</h1>
                 <p>
-                    Gestiona tus clientes y sus sitios web.
+                    Gestiona tus clientes y sus sitios web
+                    desde un único lugar.
                 </p>
             </div>
 
-            <!-- Aquí conectaremos la gestión de clientes
-                 con la API multicliente. -->
+            <!-- FORMULARIO DE CREACIÓN -->
+            <section class="clients-panel">
+                <div class="clients-heading">
+                    <h2>Nuevo cliente</h2>
+                    <p>
+                        Registra una empresa o profesional
+                        para organizar sus dominios.
+                    </p>
+                </div>
+
+                <form id="client-form" class="client-form">
+                    <div class="client-field">
+                        <label for="client-name">Nombre del cliente</label>
+                        <input
+                            type="text"
+                            id="client-name"
+                            name="name"
+                            placeholder="Ej. Agencia Digital Málaga"
+                            autocomplete="organization"
+                            maxlength="120"
+                            required
+                        >
+                    </div>
+
+                    <div class="client-field">
+                        <label for="client-email">Correo electrónico (opcional)</label>
+                        <input
+                            type="email"
+                            id="client-email"
+                            name="email"
+                            placeholder="contacto@agencia.com"
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <button type="submit" id="create-client-btn">
+                        Crear cliente
+                    </button>
+                </form>
+
+                <p id="client-message" role="status" aria-live="polite"></p>
+            </section>
+
+            <!-- LISTADO DE CLIENTES -->
+            <section class="clients-panel">
+                <div class="clients-heading">
+                    <h2>Mis clientes</h2>
+                    <p>
+                        Consulta los clientes registrados
+                        y sus dominios asociados.
+                    </p>
+                </div>
+
+                <div id="clients-list">
+                    <p class="clients-empty">
+                        El listado de clientes estará disponible
+                        cuando conectemos la API.
+                    </p>
+                </div>
+            </section>
         </section>
 
         <!-- =====================================
