@@ -1624,3 +1624,243 @@ label {
         flex-wrap: wrap;
     }
 }
+
+
+/* Indicadores de seguridad en Clientes */
+
+.client-domain-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.client-domain-info {
+    flex-wrap: wrap;
+}
+
+.client-domain-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+}
+
+.client-domain-metrics .domain-monitor-metric {
+    min-width: 110px;
+}
+
+@media (max-width: 600px) {
+    .client-domain-content {
+        width: 100%;
+    }
+}
+
+
+/* Contador de dominios por cliente */
+
+.client-name-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.client-domain-count {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border-radius: 20px;
+    background: rgba(45, 212, 191, 0.10);
+    border: 1px solid rgba(45, 212, 191, 0.20);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+
+/* =========================================
+   WEBGUARD — ESCALA VISUAL GENERAL
+========================================= */
+
+body {
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+/* Navegación lateral */
+.sidebar .nav-item {
+    font-size: 14px;
+}
+
+/* Títulos principales */
+.app-section > h1,
+.app-section > .section-header h1 {
+    font-size: 28px;
+}
+
+/* Títulos de tarjetas */
+.card h2,
+.client-item-name {
+    font-size: 17px;
+}
+
+/* Textos secundarios */
+.client-item-email,
+.client-domains-empty {
+    font-size: 13px;
+}
+
+/* Campos y botones */
+input,
+select,
+textarea,
+button {
+    font-size: 14px;
+}
+
+/* Contador de dominios */
+.client-domain-count {
+    font-size: 12px;
+    padding: 5px 11px;
+}
+
+/* Nombre del dominio */
+.client-domain-info strong {
+    font-size: 15px;
+}
+
+/* Indicadores de seguridad */
+.client-domain-metrics .metric-label {
+    font-size: 12px;
+}
+
+.client-domain-metrics strong {
+    font-size: 15px;
+}
+
+/* Botones de cada dominio */
+.client-domain-actions button {
+    font-size: 13px;
+    padding: 10px 14px;
+}
+
+/* Más espacio dentro de las tarjetas */
+.client-domain-item {
+    padding: 16px;
+    gap: 20px;
+}
+
+
+/* =========================================
+   WEBGUARD — TARJETAS DE MÉTRICAS
+========================================= */
+
+.client-domain-item {
+    align-items: stretch;
+    padding: 20px;
+    gap: 24px;
+}
+
+.client-domain-content {
+    gap: 18px;
+}
+
+.client-domain-info {
+    gap: 12px;
+}
+
+.client-domain-info strong {
+    font-size: 16px;
+}
+
+.client-domain-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.client-domain-metrics .domain-monitor-metric {
+    min-width: 0;
+    padding: 15px 18px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.client-domain-metrics .metric-label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 7px;
+    color: var(--text-secondary);
+}
+
+.client-domain-metrics strong {
+    display: block;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.client-domain-actions {
+    align-self: center;
+}
+
+@media (max-width: 900px) {
+    .client-domain-item {
+        flex-direction: column;
+    }
+
+    .client-domain-actions {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 600px) {
+    .client-domain-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .client-domain-actions {
+        align-self: stretch;
+    }
+}
+
+
+/* =========================================
+   WEBGUARD — MEJORA DEL MENÚ LATERAL
+========================================= */
+
+.sidebar .nav-item {
+    font-size: 15px;
+    font-weight: 500;
+    min-height: 46px;
+    padding: 12px 15px;
+    border-radius: 9px;
+    transition: background-color 0.2s ease,
+                color 0.2s ease;
+}
+
+.sidebar .nav-item:hover {
+    background: rgba(45, 212, 191, 0.07);
+    color: var(--text-primary);
+}
+
+.sidebar .nav-item.active {
+    background: rgba(45, 212, 191, 0.13);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Botones de dominios alineados abajo */
+.client-domain-actions {
+    align-self: flex-end;
+}
+
+@media (max-width: 900px) {
+    .client-domain-actions {
+        align-self: flex-end;
+    }
+}

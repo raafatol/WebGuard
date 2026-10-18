@@ -880,12 +880,22 @@ async function loadClients() {
             name.className = "client-item-name";
             name.textContent = client.name;
 
+
+            const domainCounter = document.createElement("span");
+            domainCounter.className = "client-domain-count";
+            domainCounter.textContent = "Cargando...";
+
+            const nameRow = document.createElement("div");
+            nameRow.className = "client-name-row";
+            nameRow.append(name, domainCounter);
+
+
             const email = document.createElement("p");
             email.className = "client-item-email";
             email.textContent = client.email || "Sin correo electrónico";
 
             
-            details.append(name, email);
+           details.append(nameRow, email);
 
             const actions = document.createElement("div");
             actions.className = "client-actions";
@@ -1237,7 +1247,38 @@ async function loadClientDomains(clientId, container) {
             throw new Error("Respuesta de dominios no válida");
         }
 
+
+        const statusResponse = await fetch("/domains/status");
+
+        if (!statusResponse.ok) {
+            throw new Error(
+                "No se pudieron cargar los estados de seguridad"
+            );
+        }
+
+        const domainStatuses = await statusResponse.json();
+
+        if (!Array.isArray(domainStatuses)) {
+            throw new Error("Respuesta de estados no válida");
+        }
+
+        const statusById = new Map(
+            domainStatuses.map(domain => [domain.id, domain.latest_analysis])
+        );
+
         container.replaceChildren();
+
+
+        // Actualizar el contador de dominios del cliente
+        const clientCard = container.closest(".client-item");
+        const domainCounter = clientCard?.querySelector(".client-domain-count");
+
+        if (domainCounter) {
+            const count = domains.length;
+            domainCounter.textContent =
+                `${count} ${count === 1 ? "dominio" : "dominios"}`;
+        }
+
 
         if (domains.length === 0) {
             const empty = document.createElement("p");
@@ -1334,9 +1375,61 @@ async function loadClientDomains(clientId, container) {
             }
         });
 
-        actions.append(historyBtn, deleteBtn);
-        item.append(domainInfo, actions);
-        container.appendChild(item);
+        
+            actions.append(historyBtn, deleteBtn);
+
+            const latest = statusById.get(domain.id);
+
+            const domainContent = document.createElement("div");
+            domainContent.className = "client-domain-content";
+
+            const metrics = document.createElement("div");
+            metrics.className = "client-domain-metrics";
+
+            const tlsBadge = document.createElement("span");
+            tlsBadge.className = "domain-tls-badge";
+
+            if (!latest) {
+                tlsBadge.textContent = "Pendiente de análisis";
+                tlsBadge.classList.add("status-unknown");
+            } else if (latest.tls_valid === true) {
+                tlsBadge.textContent = "TLS válido";
+                tlsBadge.classList.add("status-valid");
+            } else if (latest.tls_valid === false) {
+                tlsBadge.textContent = "TLS no válido";
+                tlsBadge.classList.add("status-invalid");
+            } else {
+                tlsBadge.textContent = "TLS sin datos";
+                tlsBadge.classList.add("status-unknown");
+            }
+
+            domainInfo.appendChild(tlsBadge);
+
+            metrics.append(
+                createClientDomainMetric(
+                    "Último análisis",
+                    latest ? formatDate(latest.analyzed_at) : "Nunca"
+                ),
+                createClientDomainMetric(
+                    "Respuesta HTTP",
+                    latest?.http_status != null
+                        ? String(latest.http_status)
+                        : "Sin datos"
+                ),
+                createClientDomainMetric(
+                    "Cabeceras detectadas",
+                    latest?.headers_present != null &&
+                    latest?.headers_total != null
+                        ? `${latest.headers_present}/${latest.headers_total}`
+                        : "Sin datos"
+                )
+            );
+
+            domainContent.append(domainInfo, metrics);
+
+            item.append(domainContent, actions);
+            container.appendChild(item);
+
     }
 
     } catch (error) {
@@ -1348,4 +1441,21 @@ async function loadClientDomains(clientId, container) {
 
         container.appendChild(errorText);
     }
+}
+
+
+function createClientDomainMetric(label, value) {
+    const metric = document.createElement("div");
+    metric.className = "domain-monitor-metric";
+
+    const metricLabel = document.createElement("span");
+    metricLabel.className = "metric-label";
+    metricLabel.textContent = label;
+
+    const metricValue = document.createElement("strong");
+    metricValue.textContent = value;
+
+    metric.append(metricLabel, metricValue);
+
+    return metric;
 }
