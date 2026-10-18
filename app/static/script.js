@@ -798,6 +798,35 @@ const createClientBtn = document.getElementById("create-client-btn");
 const clientMessage = document.getElementById("client-message");
 const clientsList = document.getElementById("clients-list");
 
+
+const editClientModal = document.getElementById("edit-client-modal");
+const editClientForm = document.getElementById("edit-client-form");
+const editClientNameInput = document.getElementById("edit-client-name");
+const editClientEmailInput = document.getElementById("edit-client-email");
+const editClientMessage = document.getElementById("edit-client-message");
+const cancelEditClientBtn = document.getElementById(
+    "cancel-edit-client-btn"
+);
+const saveEditClientBtn = document.getElementById(
+    "save-edit-client-btn"
+);
+
+let editingClientId = null;
+
+
+const deleteClientModal = document.getElementById("delete-client-modal");
+const deleteClientName = document.getElementById("delete-client-name");
+const deleteClientMessage = document.getElementById("delete-client-message");
+const cancelDeleteClientBtn = document.getElementById(
+    "cancel-delete-client-btn"
+);
+const confirmDeleteClientBtn = document.getElementById(
+    "confirm-delete-client-btn"
+);
+
+let deletingClientId = null;
+
+
 // Consultar los clientes registrados
 async function loadClients() {
     clientsList.replaceChildren();
@@ -863,115 +892,27 @@ async function loadClients() {
             deleteBtn.textContent = "Eliminar";
 
             
-            editBtn.addEventListener("click", async () => {
-                const newName = window.prompt(
-                    "Nuevo nombre del cliente:",
-                    client.name
-                );
+            editBtn.addEventListener("click", () => {
+                editingClientId = client.id;
 
-                if (newName === null) return;
+                editClientNameInput.value = client.name;
+                editClientEmailInput.value = client.email || "";
 
-                const name = newName.trim();
+                setStatus(editClientMessage, "");
 
-                if (!name) {
-                    setStatus(
-                        clientMessage,
-                        "El nombre del cliente no puede estar vacío.",
-                        "error"
-                    );
-                    return;
-                }
-
-                const newEmail = window.prompt(
-                    "Nuevo correo electrónico (puedes dejarlo vacío):",
-                    client.email || ""
-                );
-
-                if (newEmail === null) return;
-
-                const email = newEmail.trim();
-
-                editBtn.disabled = true;
-                deleteBtn.disabled = true;
-
-                try {
-                    const response = await fetch(`/clients/${client.id}`, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            name,
-                            email: email || null
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(
-                            getErrorMessage(data, "No se pudo actualizar el cliente")
-                        );
-                    }
-
-                    await loadClients();
-
-                    setStatus(
-                        clientMessage,
-                        "Cliente actualizado correctamente.",
-                        "ok"
-                    );
-
-                } catch (error) {
-                    setStatus(clientMessage, error.message, "error");
-                    editBtn.disabled = false;
-                    deleteBtn.disabled = false;
-                }
+                editClientModal.showModal();
+                editClientNameInput.focus();
             });
 
             
-            deleteBtn.addEventListener("click", async () => {
-                const confirmed = window.confirm(
-                    `¿Seguro que quieres eliminar al cliente "${client.name}"?\n\n` +
-                    "Esta acción no se puede deshacer."
-                );
+            deleteBtn.addEventListener("click", () => {
+                deletingClientId = client.id;
+                deleteClientName.textContent = client.name;
 
-                if (!confirmed) return;
-
-                editBtn.disabled = true;
-                deleteBtn.disabled = true;
-
-                try {
-                    const response = await fetch(`/clients/${client.id}`, {
-                        method: "DELETE"
-                    });
-
-                    if (!response.ok) {
-                        const data = await response.json();
-
-                        throw new Error(
-                            getErrorMessage(
-                                data,
-                                "No se pudo eliminar el cliente"
-                            )
-                        );
-                    }
-
-                    await loadClients();
-
-                    setStatus(
-                        clientMessage,
-                        "Cliente eliminado correctamente.",
-                        "ok"
-                    );
-
-                } catch (error) {
-                    setStatus(clientMessage, error.message, "error");
-
-                    editBtn.disabled = false;
-                    deleteBtn.disabled = false;
-                }
+                setStatus(deleteClientMessage, "");
+                deleteClientModal.showModal();
             });
+
 
 
             actions.append(editBtn, deleteBtn);
@@ -1040,3 +981,142 @@ clientForm.addEventListener("submit", async event => {
 
 // Cargar clientes al iniciar WebGuard
 loadClients();
+
+
+/* =========================================
+   WEBGUARD v0.8 — MODAL DE EDICIÓN
+========================================= */
+
+// Cancelar edición
+cancelEditClientBtn.addEventListener("click", () => {
+    editClientModal.close();
+});
+
+// Limpiar el cliente seleccionado al cerrar
+editClientModal.addEventListener("close", () => {
+    editingClientId = null;
+    setStatus(editClientMessage, "");
+});
+
+// Guardar cambios
+editClientForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    if (editingClientId === null) return;
+
+    const name = editClientNameInput.value.trim();
+    const email = editClientEmailInput.value.trim();
+
+    if (!name) {
+        setStatus(
+            editClientMessage,
+            "El nombre del cliente no puede estar vacío.",
+            "error"
+        );
+        return;
+    }
+
+    const clientId = editingClientId;
+
+    saveEditClientBtn.disabled = true;
+    cancelEditClientBtn.disabled = true;
+    setStatus(editClientMessage, "Guardando cambios...");
+
+    try {
+        const response = await fetch(`/clients/${clientId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email: email || null
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                getErrorMessage(
+                    data,
+                    "No se pudo actualizar el cliente"
+                )
+            );
+        }
+
+        editClientModal.close();
+
+        await loadClients();
+
+        setStatus(
+            clientMessage,
+            "Cliente actualizado correctamente.",
+            "ok"
+        );
+
+    } catch (error) {
+        setStatus(editClientMessage, error.message, "error");
+    } finally {
+        saveEditClientBtn.disabled = false;
+        cancelEditClientBtn.disabled = false;
+    }
+});
+
+
+/* =========================================
+   WEBGUARD v0.8 — ELIMINACIÓN DE CLIENTES
+========================================= */
+
+cancelDeleteClientBtn.addEventListener("click", () => {
+    deleteClientModal.close();
+});
+
+deleteClientModal.addEventListener("close", () => {
+    deletingClientId = null;
+    setStatus(deleteClientMessage, "");
+});
+
+confirmDeleteClientBtn.addEventListener("click", async () => {
+    if (deletingClientId === null) return;
+
+    const clientId = deletingClientId;
+
+    confirmDeleteClientBtn.disabled = true;
+    cancelDeleteClientBtn.disabled = true;
+
+    setStatus(deleteClientMessage, "Eliminando cliente...");
+
+    try {
+        const response = await fetch(`/clients/${clientId}`, {
+            method: "DELETE"
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+
+            throw new Error(
+                getErrorMessage(
+                    data,
+                    "No se pudo eliminar el cliente"
+                )
+            );
+        }
+
+        deleteClientModal.close();
+
+        await loadClients();
+
+        setStatus(
+            clientMessage,
+            "Cliente eliminado correctamente.",
+            "ok"
+        );
+
+    } catch (error) {
+        setStatus(deleteClientMessage, error.message, "error");
+    } finally {
+        confirmDeleteClientBtn.disabled = false;
+        cancelDeleteClientBtn.disabled = false;
+    }
+});

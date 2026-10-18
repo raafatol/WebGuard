@@ -528,5 +528,115 @@
         </div>
     </dialog>
 
+    <!-- =========================================
+        WEBGUARD v0.8 — EDITAR CLIENTE
+    ========================================= -->
+
+    <dialog id="edit-client-modal" class="delete-modal client-modal">
+        <div class="modal-content">
+
+            <h2>Editar cliente</h2>
+
+            <p class="modal-hint">
+                Modifica los datos del cliente y guarda los cambios.
+            </p>
+
+            <form id="edit-client-form">
+
+                <div class="client-field">
+                    <label for="edit-client-name">
+                        Nombre del cliente
+                    </label>
+
+                    <input
+                        type="text"
+                        id="edit-client-name"
+                        maxlength="120"
+                        required
+                    >
+                </div>
+
+                <div class="client-field">
+                    <label for="edit-client-email">
+                        Correo electrónico (opcional)
+                    </label>
+
+                    <input
+                        type="email"
+                        id="edit-client-email"
+                    >
+                </div>
+
+                <p
+                    id="edit-client-message"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+
+                <div class="modal-actions">
+                    <button
+                        type="button"
+                        id="cancel-edit-client-btn"
+                        class="cancel-btn"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        id="save-edit-client-btn"
+                    >
+                        Guardar cambios
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </dialog>
+
+
+    <!-- WEBGUARD v0.8 — ELIMINAR CLIENTE -->
+
+    <dialog id="delete-client-modal" class="delete-modal client-modal">
+        <div class="modal-content">
+
+            <div class="modal-icon">⚠</div>
+
+            <h2>¿Eliminar cliente?</h2>
+
+            <p>
+                ¿Seguro que quieres eliminar a
+                <strong id="delete-client-name"></strong>?
+            </p>
+
+            <p class="modal-hint">
+                Esta acción no se puede deshacer.
+                Los clientes con dominios asociados
+                no pueden eliminarse.
+            </p>
+
+            <p id="delete-client-message" role="alert"></p>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    id="cancel-delete-client-btn"
+                    class="cancel-btn"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    id="confirm-delete-client-btn"
+                    class="confirm-delete-btn"
+                >
+                    Eliminar cliente
+                </button>
+            </div>
+
+        </div>
+    </dialog>
+
 </body>
 </html>

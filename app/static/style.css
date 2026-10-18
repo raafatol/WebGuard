@@ -1299,3 +1299,174 @@ label {
         align-items: flex-start;
     }
 }
+
+
+/* WEBGUARD v0.8 — MODAL DE EDICIÓN */
+
+.client-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+#edit-client-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+#edit-client-form .client-field input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#edit-client-message {
+    margin: 0;
+    font-size: 13px;
+}
+
+#save-edit-client-btn {
+    background: var(--accent);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+#save-edit-client-btn:hover {
+    background: var(--accent-hover);
+}
+
+#save-edit-client-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+
+/* WEBGUARD v0.8 — REFINAMIENTO DEL MODAL */
+
+#edit-client-modal {
+    width: min(440px, calc(100vw - 32px));
+    max-width: none;
+    box-sizing: border-box;
+}
+
+#edit-client-modal .modal-content {
+    gap: 12px;
+}
+
+#edit-client-form {
+    gap: 14px;
+}
+
+#edit-client-modal .modal-actions {
+    margin-top: 4px;
+}
+
+
+/* WEBGUARD — AJUSTE DE ESPACIADO DEL MODAL */
+
+#edit-client-modal .modal-content {
+    gap: 8px;
+}
+
+#edit-client-modal h2 {
+    margin: 0;
+}
+
+#edit-client-modal .modal-hint {
+    margin: 0 0 10px;
+}
+
+#edit-client-form {
+    gap: 14px;
+}
+
+
+/* WEBGUARD v0.8 — MODAL DE ELIMINACIÓN DE CLIENTES */
+
+#delete-client-modal {
+    width: min(440px, calc(100vw - 32px));
+    max-width: none;
+    box-sizing: border-box;
+}
+
+#delete-client-modal .modal-content {
+    gap: 12px;
+}
+
+#delete-client-modal h2,
+#delete-client-modal p {
+    margin-top: 0;
+}
+
+#delete-client-modal .modal-hint {
+    margin-bottom: 4px;
+}
+
+#delete-client-message {
+    font-size: 13px;
+    margin: 0;
+}
+
+#delete-client-message:empty {
+    display: none;
+}
+
+
+/* =========================================
+   WEBGUARD v0.8 — MODAL ELIMINAR REFINADO
+========================================= */
+
+#delete-client-modal {
+    width: min(420px, calc(100vw - 32px));
+    max-width: none;
+    box-sizing: border-box;
+}
+
+#delete-client-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+#delete-client-modal .modal-icon {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1;
+}
+
+#delete-client-modal h2 {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.3;
+}
+
+#delete-client-modal .modal-content > p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+#delete-client-modal .modal-hint {
+    color: var(--text-secondary);
+    font-size: 13px !important;
+    line-height: 1.6;
+}
+
+#delete-client-modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 0;
+}
+
+#delete-client-modal .modal-actions button {
+    min-height: 40px;
+    padding: 10px 16px;
+}
