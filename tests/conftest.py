@@ -4,16 +4,25 @@ import pytest
 from app.database import db
 
 
-@pytest.fixture
-def database(tmp_path, monkeypatch):
+@pytest.fixture(autouse=True)
+def protect_real_database(tmp_path, monkeypatch):
     """
-    Crea una base de datos SQLite temporal
-    e independiente para cada prueba.
+    Aísla cada test de la base de datos real.
+
+    No inicializa las tablas automáticamente porque
+    algunos tests necesitan simular bases antiguas.
     """
     database_path = tmp_path / "webguard_test.db"
 
     monkeypatch.setattr(db, "DB_PATH", database_path)
 
+
+@pytest.fixture
+def database():
+    """
+    Inicializa una base de datos temporal para
+    los tests que solicitan esta fixture.
+    """
     db.init_db()
 
-    return database_path
+    return db.DB_PATH

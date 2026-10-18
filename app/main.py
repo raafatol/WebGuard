@@ -1,5 +1,6 @@
 
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
@@ -31,11 +32,20 @@ from app.database.client_repository import (
     delete_client
 )
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Inicializa SQLite al arrancar WebGuard,
+    no al importar el módulo.
+    """
+    init_db()
+    yield
 
 app = FastAPI(
     title="WebGuard API",
     description="Website Security Monitoring",
-    version="0.4.0"
+    version="0.4.0",
+    lifespan=lifespan
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -46,11 +56,6 @@ app.mount(
     StaticFiles(directory=STATIC_DIR),
     name="static"
 )
-
-# Inicializar las tablas de SQLite
-init_db()
-
-
 
 class DomainCreate(BaseModel):
     domain: str
