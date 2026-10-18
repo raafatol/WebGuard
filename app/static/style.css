@@ -1470,3 +1470,157 @@ label {
     min-height: 40px;
     padding: 10px 16px;
 }
+
+
+/* =========================================
+   WEBGUARD v0.8 — SELECTOR DE CLIENTE
+========================================= */
+
+#domain-client {
+    min-height: 46px;
+    min-width: 190px;
+    padding: 0 36px 0 14px;
+
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#domain-client:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+#domain-client option {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+@media (max-width: 700px) {
+    #domain-client {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+
+/* WEBGUARD v0.8 — FLECHA DEL SELECTOR */
+
+#domain-client {
+    appearance: none;
+    -webkit-appearance: none;
+
+    padding: 0 42px 0 14px;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+}
+
+
+/* =========================================
+   WEBGUARD v0.8 — DOMINIOS DE CLIENTES
+========================================= */
+
+.client-item {
+    display: block;
+}
+
+.client-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.client-domains {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color);
+}
+
+.client-domain-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.client-domains-empty {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .client-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+
+/* =========================================
+   WEBGUARD v0.8 — ACCIONES DE DOMINIOS
+========================================= */
+
+.client-domain-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.client-domain-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.client-domain-info strong {
+    overflow-wrap: anywhere;
+}
+
+.client-domain-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.client-domain-actions button {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 7px;
+}
+
+.client-domain-actions button:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+@media (max-width: 600px) {
+    .client-domain-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .client-domain-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}

@@ -221,6 +221,7 @@ analyzeForm.addEventListener("submit", async event => {
 
 const domainForm = document.getElementById("domain-form");
 const newDomainInput = document.getElementById("new-domain");
+const domainClientSelect = document.getElementById("domain-client");
 const addDomainBtn = document.getElementById("add-domain-btn");
 const domainMessage = document.getElementById("domain-message");
 const domainsList = document.getElementById("domains-list");
@@ -593,6 +594,10 @@ domainForm.addEventListener("submit", async event => {
     const domain = newDomainInput.value.trim();
     if (!domain) return;
 
+    const clientId = domainClientSelect.value
+    ? Number(domainClientSelect.value)
+    : null;
+
     addDomainBtn.disabled = true;
 
     try {
@@ -601,7 +606,10 @@ domainForm.addEventListener("submit", async event => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ domain })
+            body: JSON.stringify({
+                domain,
+                client_id: clientId
+            })
         });
 
         const data = await response.json();
@@ -613,6 +621,7 @@ domainForm.addEventListener("submit", async event => {
         }
 
         newDomainInput.value = "";
+        domainClientSelect.value = "";
         showDomainMessage("Dominio añadido correctamente.");
         await loadDomains();
 
@@ -913,11 +922,21 @@ async function loadClients() {
                 deleteClientModal.showModal();
             });
 
-
-
+            
             actions.append(editBtn, deleteBtn);
-            item.append(details, actions);
+
+            const clientHeader = document.createElement("div");
+            clientHeader.className = "client-item-header";
+            clientHeader.append(details, actions);
+
+            const domainsContainer = document.createElement("div");
+            domainsContainer.className = "client-domains";
+
+            item.append(clientHeader, domainsContainer);
             clientsList.appendChild(item);
+
+            loadClientDomains(client.id, domainsContainer);
+
 
         }
 
@@ -965,6 +984,7 @@ clientForm.addEventListener("submit", async event => {
         clientForm.reset();
 
         await loadClients();
+        await loadDomainClients();
 
         setStatus(
             clientMessage,
@@ -1048,6 +1068,7 @@ editClientForm.addEventListener("submit", async event => {
         editClientModal.close();
 
         await loadClients();
+        await loadDomainClients();
 
         setStatus(
             clientMessage,
@@ -1062,6 +1083,66 @@ editClientForm.addEventListener("submit", async event => {
         cancelEditClientBtn.disabled = false;
     }
 });
+
+
+/* =========================================
+   WEBGUARD v0.8 — SELECTOR DE CLIENTES
+========================================= */
+
+async function loadDomainClients() {
+    const previousSelection = domainClientSelect.value;
+
+    domainClientSelect.replaceChildren();
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "Sin cliente asignado";
+    domainClientSelect.appendChild(defaultOption);
+
+    domainClientSelect.disabled = true;
+
+    try {
+        const response = await fetch("/clients");
+        const clients = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                getErrorMessage(
+                    clients,
+                    "No se pudieron cargar los clientes"
+                )
+            );
+        }
+
+        if (!Array.isArray(clients)) {
+            throw new Error("La respuesta de clientes no es válida");
+        }
+
+        for (const client of clients) {
+            const option = document.createElement("option");
+            option.value = String(client.id);
+            option.textContent = client.name;
+            domainClientSelect.appendChild(option);
+        }
+
+        if (
+            previousSelection &&
+            [...domainClientSelect.options].some(
+                option => option.value === previousSelection
+            )
+        ) {
+            domainClientSelect.value = previousSelection;
+        }
+
+        domainClientSelect.disabled = false;
+
+    } catch (error) {
+        console.error("Error al cargar clientes:", error);
+        showDomainMessage(error.message, true);
+    }
+}
+
+loadDomainClients();
 
 
 /* =========================================
@@ -1106,6 +1187,7 @@ confirmDeleteClientBtn.addEventListener("click", async () => {
         deleteClientModal.close();
 
         await loadClients();
+        await loadDomainClients();
 
         setStatus(
             clientMessage,
@@ -1120,3 +1202,150 @@ confirmDeleteClientBtn.addEventListener("click", async () => {
         cancelDeleteClientBtn.disabled = false;
     }
 });
+
+
+
+/* =========================================
+   WEBGUARD v0.8 — DOMINIOS POR CLIENTE
+========================================= */
+
+async function loadClientDomains(clientId, container) {
+    container.replaceChildren();
+
+    const loading = document.createElement("p");
+    loading.className = "client-domains-empty";
+    loading.textContent = "Cargando dominios...";
+    container.appendChild(loading);
+
+    try {
+        const response = await fetch(
+            `/clients/${clientId}/domains`
+        );
+
+        const domains = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                getErrorMessage(
+                    domains,
+                    "No se pudieron cargar los dominios"
+                )
+            );
+        }
+
+        if (!Array.isArray(domains)) {
+            throw new Error("Respuesta de dominios no válida");
+        }
+
+        container.replaceChildren();
+
+        if (domains.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "client-domains-empty";
+            empty.textContent = "Este cliente todavía no tiene dominios.";
+            container.appendChild(empty);
+            return;
+        }
+
+        
+    for (const domain of domains) {
+        const item = document.createElement("div");
+        item.className = "client-domain-item";
+
+        // Icono y nombre del dominio
+        const domainInfo = document.createElement("div");
+        domainInfo.className = "client-domain-info";
+
+        const icon = document.createElement("span");
+        icon.textContent = "🌐";
+
+        const name = document.createElement("strong");
+        name.textContent = domain.domain;
+
+        domainInfo.append(icon, name);
+
+        // Botones de acciones
+        const actions = document.createElement("div");
+        actions.className = "client-domain-actions";
+
+        const historyBtn = document.createElement("button");
+        historyBtn.type = "button";
+        historyBtn.className = "history-button";
+        historyBtn.textContent = "Ver historial";
+
+        historyBtn.addEventListener("click", () => {
+            navigateTo("monitoring");
+            loadHistory(domain.domain);
+        });
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "delete-domain-btn";
+        deleteBtn.textContent = "Eliminar";
+
+        deleteBtn.addEventListener("click", async () => {
+            const confirmed = await askDeleteConfirmation(domain.domain);
+
+            if (!confirmed) return;
+
+            deleteBtn.disabled = true;
+            historyBtn.disabled = true;
+
+            try {
+                const response = await fetch(
+                    `/domains/${domain.id}`,
+                    { method: "DELETE" }
+                );
+
+                if (!response.ok) {
+                    const data = await response.json();
+
+                    throw new Error(
+                        getErrorMessage(
+                            data,
+                            "No se pudo eliminar el dominio"
+                        )
+                    );
+                }
+
+                // Cerrar su historial si está abierto
+                if (
+                    !historyPanel.hidden &&
+                    historyDomain.textContent === domain.domain
+                ) {
+                    historyRequestId++;
+                    historyPanel.hidden = true;
+                }
+
+                // Actualizar ambas pestañas
+                await loadDomains();
+                await loadClientDomains(clientId, container);
+
+                setStatus(
+                    clientMessage,
+                    "Dominio eliminado correctamente.",
+                    "ok"
+                );
+
+            } catch (error) {
+                setStatus(clientMessage, error.message, "error");
+                deleteBtn.disabled = false;
+                historyBtn.disabled = false;
+            }
+        });
+
+        actions.append(historyBtn, deleteBtn);
+        item.append(domainInfo, actions);
+        container.appendChild(item);
+    }
+
+    } catch (error) {
+        container.replaceChildren();
+
+        const errorText = document.createElement("p");
+        errorText.className = "error";
+        errorText.textContent = error.message;
+
+        container.appendChild(errorText);
+    }
+}
