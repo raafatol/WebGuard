@@ -1459,3 +1459,433 @@ function createClientDomainMetric(label, value) {
 
     return metric;
 }
+
+/* =========================================
+   WEBGUARD — ESTADÍSTICAS DEL DASHBOARD
+========================================= */
+
+const statDomains = document.getElementById("stat-domains");
+const statSecure = document.getElementById("stat-secure");
+const statAlerts = document.getElementById("stat-alerts");
+const statClients = document.getElementById("stat-clients");
+
+async function loadDashboard() {
+
+    const stats = [
+        statDomains,
+        statSecure,
+        statAlerts,
+        statClients
+    ];
+
+    // Mostrar estado de carga.
+    stats.forEach(element => {
+        element.textContent = "…";
+    });
+
+    try {
+
+        const endpoints = [
+            "/domains/status",
+            "/alerts",
+            "/clients"
+        ];
+
+        const responses = await Promise.all(
+            endpoints.map(endpoint => fetch(endpoint))
+        );
+
+        for (const response of responses) {
+            if (!response.ok) {
+                throw new Error(
+                    "No se pudieron cargar las estadísticas"
+                );
+            }
+        }
+
+        const [domains, alerts, clients] = await Promise.all(
+            responses.map(response => response.json())
+        );
+
+        if (
+            !Array.isArray(domains) ||
+            !Array.isArray(alerts) ||
+            !Array.isArray(clients)
+        ) {
+            throw new Error(
+                "Formato de respuesta no válido"
+            );
+        }
+
+        const validTLS = domains.filter(domain =>
+            domain.latest_analysis?.tls_valid === true
+        ).length;
+
+        statDomains.textContent = domains.length;
+        statSecure.textContent = validTLS;
+        statAlerts.textContent = alerts.length;
+        statClients.textContent = clients.length;
+
+        // =========================================
+        // ACTIVIDAD RECIENTE DEL DASHBOARD
+        // =========================================
+
+        const activityList = document.getElementById(
+            "dashboard-activity-list"
+        );
+
+        activityList.replaceChildren();
+
+        if (domains.length === 0) {
+
+            const empty = document.createElement("p");
+            empty.className = "dashboard-empty";
+            empty.textContent =
+                "Todavía no hay dominios monitorizados. " +
+                "Añade uno desde Monitorización para ver sus análisis aquí.";
+
+            activityList.appendChild(empty);
+
+        } else {
+
+            const recentDomains = [...domains]
+                .sort((a, b) => {
+                    const dateA = a.latest_analysis?.analyzed_at || "";
+                    const dateB = b.latest_analysis?.analyzed_at || "";
+
+                    return dateB.localeCompare(dateA);
+                })
+                .slice(0, 5);
+
+            const tableWrapper = document.createElement("div");
+            tableWrapper.className = "dashboard-table-wrapper";
+
+            const table = document.createElement("table");
+            table.className = "dashboard-analysis-table";
+
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+
+            ["Dominio", "Estado", "TLS", "Cabeceras", "Fecha"].forEach(label => {
+                const th = document.createElement("th");
+                th.textContent = label;
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+
+            const tbody = document.createElement("tbody");
+
+            for (const domain of recentDomains) {
+
+                const analysis = domain.latest_analysis;
+                const row = document.createElement("tr");
+
+                // Dominio
+                const domainCell = document.createElement("td");
+                domainCell.className = "dashboard-domain-cell";
+                domainCell.textContent = domain.domain;
+
+                // Estado conocido
+                const statusCell = document.createElement("td");
+                const statusBadge = document.createElement("span");
+                statusBadge.className = "dashboard-table-status";
+
+                if (!analysis) {
+                    statusBadge.textContent = "Pendiente";
+                    statusBadge.classList.add("status-unknown");
+                } else if (analysis.tls_valid === true) {
+                    statusBadge.textContent = "TLS válido";
+                    statusBadge.classList.add("status-valid");
+                } else if (analysis.tls_valid === false) {
+                    statusBadge.textContent = "TLS inválido";
+                    statusBadge.classList.add("status-invalid");
+                } else {
+                    statusBadge.textContent = "Sin dato TLS";
+                    statusBadge.classList.add("status-unknown");
+                }
+
+                statusCell.appendChild(statusBadge);
+
+                // TLS
+                const tlsCell = document.createElement("td");
+
+                if (analysis?.tls_valid === true) {
+                    tlsCell.textContent = "✓";
+                    tlsCell.className = "dashboard-tls-valid";
+                } else if (analysis?.tls_valid === false) {
+                    tlsCell.textContent = "✕";
+                    tlsCell.className = "dashboard-tls-invalid";
+                } else {
+                    tlsCell.textContent = "—";
+                }
+
+                // =========================================
+                // CABECERAS DE SEGURIDAD
+                // =========================================
+
+                const headersCell = document.createElement("td");
+                headersCell.className = "dashboard-headers-cell";
+
+                const present = analysis?.headers_present;
+                const total = analysis?.headers_total;
+
+                if (
+                    Number.isInteger(present) &&
+                    Number.isInteger(total) &&
+                    total > 0 &&
+                    present >= 0 &&
+                    present <= total
+                ) {
+                    const percentage = (present / total) * 100;
+
+                    const container = document.createElement("div");
+                    container.className = "dashboard-headers-container";
+
+                    const progress = document.createElement("div");
+                    progress.className = "dashboard-headers-progress";
+
+                    const fill = document.createElement("div");
+                    fill.className = "dashboard-headers-fill";
+                    fill.style.width = `${percentage}%`;
+
+                    const label = document.createElement("span");
+                    label.className = "dashboard-headers-label";
+                    label.textContent = `${present}/${total}`;
+                    label.title = `${present} de ${total} cabeceras detectadas`;
+
+                    progress.appendChild(fill);
+                    container.append(progress, label);
+                    headersCell.appendChild(container);
+
+                } else {
+                    headersCell.textContent = "—";
+                    headersCell.classList.add("dashboard-muted-cell");
+                }
+
+                // Fecha
+                const dateCell = document.createElement("td");
+                dateCell.className = "dashboard-date-cell";
+
+                if (analysis?.analyzed_at) {
+                    const date = new Date(analysis.analyzed_at);
+
+                    dateCell.textContent = Number.isNaN(date.getTime())
+                        ? analysis.analyzed_at
+                        : date.toLocaleString("es-ES", {
+                            dateStyle: "short",
+                            timeStyle: "short"
+                        });
+                } else {
+                    dateCell.textContent = "Sin analizar";
+                }
+
+                row.append(
+                    domainCell,
+                    statusCell,
+                    tlsCell,
+                    headersCell,
+                    dateCell
+                );
+
+                tbody.appendChild(row);
+            }
+
+            table.append(thead, tbody);
+            tableWrapper.appendChild(table);
+            activityList.appendChild(tableWrapper);
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error al cargar el dashboard:",
+            error
+        );
+
+        stats.forEach(element => {
+            element.textContent = "—";
+        });
+
+    }
+}
+
+// Cargar estadísticas al iniciar WebGuard.
+loadDashboard();
+
+// Actualizar al entrar en Resumen.
+document.querySelector(
+    '[data-section="overview"]'
+).addEventListener("click", loadDashboard);
+
+/* =========================================
+   WEBGUARD — TÍTULO DINÁMICO
+========================================= */
+
+const topbarTitle = document.getElementById("topbar-title");
+
+const sectionTitles = {
+    overview: "Dashboard",
+    monitoring: "Monitorización",
+    clients: "Clientes",
+    reports: "Informes",
+    settings: "Configuración"
+};
+
+document.querySelectorAll(".sidebar .nav-item").forEach(button => {
+    button.addEventListener("click", () => {
+        const section = button.dataset.section;
+
+        if (sectionTitles[section]) {
+            topbarTitle.textContent = sectionTitles[section];
+        }
+    });
+});
+
+// Título inicial
+topbarTitle.textContent = "Dashboard";
+
+/* =========================================
+   WEBGUARD — NOTIFICACIONES
+========================================= */
+
+const notificationsButton = document.getElementById("notifications-btn");
+const notificationsPanel = document.getElementById("notifications-panel");
+const notificationsCount = document.getElementById("notifications-count");
+const notificationsMessage = document.getElementById("notifications-message");
+const notificationsViewAlerts = document.getElementById("notifications-view-alerts");
+
+async function loadNotifications() {
+    try {
+        const response = await fetch("/alerts");
+
+        if (!response.ok) {
+            throw new Error("No se pudieron cargar las alertas");
+        }
+
+        const alerts = await response.json();
+
+        if (!Array.isArray(alerts)) {
+            throw new Error("Respuesta de alertas no válida");
+        }
+
+        const count = alerts.length;
+
+        notificationsCount.textContent = count > 99 ? "99+" : String(count);
+        notificationsCount.hidden = count === 0;
+
+        notificationsMessage.textContent = count === 0
+            ? "No hay alertas registradas."
+            : `Hay ${count} alerta${count === 1 ? "" : "s"} registrada${count === 1 ? "" : "s"}.`;
+
+    } catch (error) {
+        console.error("Error al cargar notificaciones:", error);
+        notificationsCount.hidden = true;
+        notificationsMessage.textContent = "No se pudieron cargar las alertas.";
+    }
+}
+
+notificationsButton.addEventListener("click", async () => {
+    const opening = notificationsPanel.hidden;
+
+    notificationsPanel.hidden = !opening;
+    notificationsButton.setAttribute("aria-expanded", String(opening));
+
+    if (opening) {
+        await loadNotifications();
+    }
+});
+
+document.addEventListener("click", (event) => {
+    if (!event.target.closest(".topbar-notifications")) {
+        notificationsPanel.hidden = true;
+        notificationsButton.setAttribute("aria-expanded", "false");
+    }
+});
+
+notificationsViewAlerts.addEventListener("click", () => {
+    notificationsPanel.hidden = true;
+    notificationsButton.setAttribute("aria-expanded", "false");
+
+    document.querySelector(
+        '.sidebar .nav-item[data-section="monitoring"]'
+    ).click();
+});
+
+loadNotifications();
+
+/* =========================================
+   WEBGUARD — MENÚ DE USUARIO
+========================================= */
+
+const accountButton = document.getElementById("account-btn");
+const accountPanel = document.getElementById("account-panel");
+const accountSettingsButton = document.getElementById("account-settings-btn");
+
+accountButton.addEventListener("click", () => {
+    const opening = accountPanel.hidden;
+
+    accountPanel.hidden = !opening;
+    accountButton.setAttribute("aria-expanded", String(opening));
+
+    // Cerrar notificaciones si estaban abiertas.
+    if (opening) {
+        notificationsPanel.hidden = true;
+        notificationsButton.setAttribute("aria-expanded", "false");
+    }
+});
+
+document.addEventListener("click", (event) => {
+    if (!event.target.closest(".topbar-account")) {
+        accountPanel.hidden = true;
+        accountButton.setAttribute("aria-expanded", "false");
+    }
+});
+
+accountSettingsButton.addEventListener("click", () => {
+    accountPanel.hidden = true;
+    accountButton.setAttribute("aria-expanded", "false");
+
+    const settingsNav = document.querySelector(
+        '.sidebar [data-section="settings"]'
+    );
+
+    if (settingsNav) {
+        settingsNav.click();
+    }
+});
+
+/* =========================================
+   WEBGUARD — CONFIGURACIÓN
+========================================= */
+
+const settingsCheckApi = document.getElementById("settings-check-api");
+const settingsApiStatus = document.getElementById("settings-api-status");
+
+settingsCheckApi.addEventListener("click", async () => {
+    settingsApiStatus.textContent = "Comprobando...";
+    settingsApiStatus.classList.remove("is-online", "is-offline");
+    settingsCheckApi.disabled = true;
+
+    try {
+        const response = await fetch("/clients", {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        settingsApiStatus.textContent = "Conectado";
+        settingsApiStatus.classList.add("is-online");
+
+    } catch (error) {
+        console.error("Error al comprobar la API:", error);
+
+        settingsApiStatus.textContent = "Sin conexión";
+        settingsApiStatus.classList.add("is-offline");
+
+    } finally {
+        settingsCheckApi.disabled = false;
+    }
+});

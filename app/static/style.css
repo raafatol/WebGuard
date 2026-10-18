@@ -847,11 +847,23 @@ button:disabled {
     color: var(--text-primary);
 }
 
+/* PESTAÑA SELECCIONADA — TURQUESA INTENSO */
+
 .sidebar .nav-item.active {
-    background: rgba(45, 212, 191, 0.12);
-    color: var(--accent);
-    border-color: rgba(45, 212, 191, 0.18);
-    font-weight: 600;
+    background: linear-gradient(
+        90deg,
+        rgba(0, 210, 220, 0.55) 0%,
+        rgba(0, 175, 195, 0.40) 55%,
+        rgba(0, 140, 170, 0.28) 100%
+    );
+
+    border: 1px solid rgba(45, 212, 191, 0.50);
+    color: #5FFFEA;
+    font-weight: 650;
+
+    box-shadow:
+        inset 3px 0 0 #2DD4BF,
+        0 0 18px rgba(0, 210, 200, 0.10);
 }
 
 .sidebar .nav-item:focus-visible {
@@ -1862,5 +1874,1274 @@ button {
 @media (max-width: 900px) {
     .client-domain-actions {
         align-self: flex-end;
+    }
+}
+
+/* =========================================
+   WEBGUARD — NUEVA BARRA SUPERIOR
+========================================= */
+
+.header {
+    min-height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 38px;
+}
+
+.topbar-heading h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 650;
+    color: var(--text-primary);
+}
+
+.topbar-heading p {
+    margin: 3px 0 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 11px;
+}
+
+.topbar-icon-btn:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+    .header {
+        margin-left: 0;
+        min-height: 76px;
+        padding: 14px 18px;
+    }
+
+    .topbar-heading h2 {
+        font-size: 16px;
+    }
+
+    .topbar-actions {
+        gap: 8px;
+    }
+
+    .topbar-icon-btn {
+        width: 38px;
+        height: 38px;
+    }
+}
+
+/* =========================================
+   WEBGUARD — MEJORAS DE LEGIBILIDAD
+========================================= */
+
+/* Texto secundario de la barra superior */
+.topbar-heading p {
+    font-size: 14px;
+}
+
+/* Descripciones de las secciones */
+.intro p {
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+/* Navegación lateral */
+.sidebar .nav-item {
+    font-size: 15px;
+}
+
+/* Pie de la barra lateral */
+.sidebar-footer {
+    font-size: 13px;
+}
+
+/* Textos auxiliares */
+.hint,
+.domains-description,
+.alerts-description {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* =========================================
+   WEBGUARD — DASHBOARD PREMIUM
+========================================= */
+
+/* Cuadrícula de estadísticas */
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    margin-top: 32px;
+}
+
+/* Tarjetas */
+
+.dashboard-stat-card {
+    min-width: 0;
+    padding: 24px;
+
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+
+    transition:
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.dashboard-stat-card:hover {
+    border-color: rgba(45, 212, 191, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Título de cada tarjeta */
+
+.dashboard-stat-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.dashboard-stat-heading span {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Número principal */
+
+.dashboard-stat-card > strong {
+    display: block;
+    margin-top: 22px;
+
+    color: var(--text-primary);
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -1px;
+}
+
+/* Descripción */
+
+.dashboard-stat-card > p {
+    margin: 14px 0 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* =========================================
+   ACTIVIDAD RECIENTE
+========================================= */
+
+.dashboard-activity {
+    margin-top: 28px;
+    padding: 28px;
+
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+}
+
+.dashboard-activity-heading h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 20px;
+}
+
+.dashboard-activity-heading p {
+    margin: 8px 0 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.dashboard-empty {
+    margin: 28px 0 0;
+    padding: 26px;
+
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: center;
+
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+}
+
+/* =========================================
+   DISEÑO RESPONSIVE
+========================================= */
+
+@media (max-width: 1400px) {
+    .dashboard-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .dashboard-stats {
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .dashboard-stat-card {
+        padding: 18px;
+    }
+
+    .dashboard-stat-card > strong {
+        font-size: 32px;
+    }
+
+    .dashboard-activity {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-stat-card {
+        transition: none;
+    }
+
+    .dashboard-stat-card:hover {
+        transform: none;
+    }
+}
+
+/* =========================================
+   WEBGUARD — ACTIVIDAD RECIENTE
+========================================= */
+
+.dashboard-activity-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 4px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-activity-item:last-child {
+    border-bottom: none;
+}
+
+.dashboard-activity-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.dashboard-activity-info strong {
+    color: var(--text-primary);
+    font-size: 15px;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-activity-info > span {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.dashboard-activity-badge {
+    flex-shrink: 0;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.dashboard-activity-badge.status-valid {
+    background: rgba(74, 222, 128, 0.12);
+    color: var(--status-success);
+}
+
+.dashboard-activity-badge.status-invalid {
+    background: rgba(248, 113, 113, 0.12);
+    color: var(--status-danger);
+}
+
+.dashboard-activity-badge.status-unknown {
+    background: rgba(251, 191, 36, 0.12);
+    color: var(--status-warning);
+}
+
+@media (max-width: 480px) {
+    .dashboard-activity-item {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+/* =========================================
+   WEBGUARD — ICONOS DE ESTADÍSTICAS
+========================================= */
+
+.dashboard-stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+
+    color: var(--accent);
+    background: rgba(45, 212, 191, 0.10);
+    border: 1px solid rgba(45, 212, 191, 0.15);
+    border-radius: 12px;
+}
+
+/* =========================================
+   WEBGUARD — DEGRADADO LATERAL DEFINITIVO
+========================================= */
+
+.dashboard-stat-card {
+    background: linear-gradient(
+        90deg,
+        rgba(0, 190, 190, 0.16) 0%,
+        rgba(0, 150, 160, 0.08) 35%,
+        rgba(19, 29, 46, 1) 60%
+    );
+}
+
+.dashboard-stat-card:nth-child(2) {
+    background: linear-gradient(
+        90deg,
+        rgba(0, 210, 185, 0.18) 0%,
+        rgba(0, 150, 150, 0.08) 35%,
+        #131D2E 60%
+    );
+}
+
+.dashboard-stat-card:nth-child(3) {
+    background: linear-gradient(
+        90deg,
+        rgba(180, 105, 20, 0.13) 0%,
+        rgba(120, 75, 30, 0.06) 35%,
+        #131D2E 60%
+    );
+}
+
+.dashboard-stat-card:nth-child(4) {
+    background: linear-gradient(
+        90deg,
+        rgba(0, 140, 200, 0.15) 0%,
+        rgba(0, 100, 160, 0.07) 35%,
+        #131D2E 60%
+    );
+}
+
+/* =========================================
+   WEBGUARD — ICONOS DEL MENÚ LATERAL
+========================================= */
+
+.sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.sidebar .nav-item svg {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+}
+
+.sidebar .nav-item.active {
+    background: rgba(0, 185, 195, 0.22);
+    border-color: rgba(45, 212, 191, 0.18);
+    color: #2DD4BF;
+}
+
+/* =========================================
+   WEBGUARD — MENÚ LATERAL DEFINITIVO
+========================================= */
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    min-height: 48px;
+    padding: 12px 15px;
+
+    color: #A8B8CA;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.sidebar .nav-item svg {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+}
+
+.sidebar .nav-item:hover {
+    background: rgba(45, 212, 191, 0.08);
+    color: #F1F5F9;
+}
+
+.sidebar .nav-item.active {
+    background: linear-gradient(
+        90deg,
+        rgba(0, 170, 185, 0.30),
+        rgba(0, 130, 155, 0.14)
+    );
+
+    border-color: rgba(45, 212, 191, 0.22);
+    color: #2DD4BF;
+    font-weight: 600;
+}
+
+.sidebar .nav-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Línea divisoria */
+
+.sidebar-nav-divider {
+    height: 1px;
+    flex-shrink: 0;
+    margin: 16px 12px;
+    background: #304056;
+}
+
+/* Adaptación móvil */
+
+@media (max-width: 700px) {
+    .sidebar-nav {
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+    }
+
+    .sidebar .nav-item {
+        flex-shrink: 0;
+        width: auto;
+        white-space: nowrap;
+    }
+
+    .sidebar-nav-divider {
+        width: 1px;
+        height: 30px;
+        margin: 0 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar .nav-item {
+        transition: none;
+    }
+}
+
+/* WEBGUARD — PESTAÑA ACTIVA MÁS INTENSA */
+
+.sidebar .sidebar-nav .nav-item.active {
+    background: linear-gradient(
+        90deg,
+        #087D86 0%,
+        #096D79 55%,
+        #10505F 100%
+    );
+
+    color: #E5FFFC;
+    border: 1px solid #20CFC8;
+    border-left: 3px solid #38FFF0;
+
+    box-shadow:
+        0 0 14px rgba(0, 210, 200, 0.12),
+        inset 0 0 12px rgba(45, 212, 191, 0.08);
+}
+
+.sidebar .sidebar-nav .nav-item.active svg {
+    color: #E5FFFC;
+}
+
+/* =========================================
+   WEBGUARD — IDENTIDAD VISUAL
+========================================= */
+
+.sidebar-brand-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.sidebar-brand-logo {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.sidebar-brand-name {
+    display: inline-flex;
+    align-items: baseline;
+    white-space: nowrap;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+}
+
+.brand-web {
+    color: #F1F5F9;
+}
+
+.brand-guard {
+    color: #2DD4BF;
+}
+
+/* =========================================
+   WEBGUARD — LOGOTIPO ORIGINAL
+========================================= */
+
+.sidebar .sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 16px 8px;
+}
+
+.sidebar .sidebar-brand-full-logo {
+    display: block;
+    width: 100%;
+    max-width: 205px;
+    height: auto;
+    object-fit: contain;
+}
+
+/* =========================================
+   WEBGUARD — LOGOTIPO ORBITAL + TEXTO
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
+
+.sidebar .sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
+    padding: 12px 8px;
+}
+
+.sidebar .sidebar-brand-icon {
+    display: block;
+    width: 57px;
+    height: 45px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.sidebar .sidebar-brand-wordmark {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    font-family: 'Michroma', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 1px;
+}
+
+.sidebar .wordmark-web {
+    color: #F1F5F9;
+}
+
+.sidebar .wordmark-guard {
+    color: #00D9DF;
+}
+
+/* WEBGUARD — LOGO Y TIPOGRAFÍA ORIGINAL */
+
+.sidebar .sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 14px 6px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sidebar .sidebar-brand-icon {
+    display: block;
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.sidebar .sidebar-brand-wordmark-image {
+    display: block;
+    width: 112px;
+    height: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* WEBGUARD — LOGOTIPO MÁS GRANDE */
+
+.sidebar .sidebar-brand {
+    gap: 2px;
+    padding: 12px 3px;
+}
+
+.sidebar .sidebar-brand-icon {
+    width: 68px;
+    height: 68px;
+}
+
+.sidebar .sidebar-brand-wordmark-image {
+    width: 132px;
+    height: auto;
+}
+
+/* =========================================
+   WEBGUARD — TARJETAS DEL DASHBOARD
+========================================= */
+
+.dashboard-stat-card {
+    position: relative;
+    min-height: 155px;
+    padding: 20px;
+}
+
+/* Cabecera de cada tarjeta */
+
+.dashboard-stat-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* Iconos sin recuadro */
+
+.dashboard-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+    padding: 0;
+
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #00F5E6;
+}
+
+.dashboard-stat-icon svg {
+    width: 27px;
+    height: 27px;
+}
+
+/* Números destacados */
+
+.dashboard-stat-card > strong {
+    display: block;
+    margin-top: 16px;
+
+    font-size: 36px;
+    font-weight: 750;
+    line-height: 1.1;
+    color: #FFFFFF;
+}
+
+/* Descripciones */
+
+.dashboard-stat-card > p {
+    margin-top: 12px;
+    color: #A8B8CA;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* WEBGUARD — ICONOS DE LAS TARJETAS */
+
+.dashboard-stat-heading .dashboard-stat-icon {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #00F5E6;
+}
+
+.dashboard-stat-heading .dashboard-stat-icon svg {
+    width: 27px;
+    height: 27px;
+}
+
+.dashboard-stat-heading .dashboard-stat-icon-warning {
+    color: #FF9F43;
+}
+
+/* =========================================
+   WEBGUARD — TARJETAS PREMIUM
+========================================= */
+
+.dashboard-stats {
+    gap: 15px;
+}
+
+.dashboard-stat-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 175px;
+    padding: 18px 17px 15px;
+    border-radius: 13px;
+    overflow: hidden;
+}
+
+.dashboard-stat-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboard-stat-heading > span:first-child {
+    font-size: 13px;
+    font-weight: 500;
+    color: #CBD5E1;
+}
+
+.dashboard-stat-heading .dashboard-stat-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.dashboard-stat-heading .dashboard-stat-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.dashboard-stat-card > strong {
+    display: block;
+    margin-top: 13px;
+    font-size: 37px;
+    font-weight: 750;
+    line-height: 1.1;
+    color: #FFFFFF;
+}
+
+.dashboard-stat-card > p {
+    margin-top: 9px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #A8B8CA;
+}
+
+/* Barra decorativa inferior */
+
+.dashboard-stat-card::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 5px;
+    min-height: 5px;
+    margin-top: auto;
+    border-radius: 20px;
+    background: linear-gradient(
+        90deg,
+        #00E5D4 0%,
+        rgba(0, 229, 212, 0.25) 55%,
+        rgba(0, 229, 212, 0.07) 100%
+    );
+}
+
+/* Colores adaptados a cada tarjeta */
+
+.dashboard-stat-card:nth-child(2)::after {
+    background: linear-gradient(
+        90deg,
+        #00D9B8,
+        rgba(0, 217, 184, 0.08)
+    );
+}
+
+.dashboard-stat-card:nth-child(3)::after {
+    background: linear-gradient(
+        90deg,
+        #FF9F43,
+        rgba(255, 159, 67, 0.08)
+    );
+}
+
+.dashboard-stat-card:nth-child(4)::after {
+    background: linear-gradient(
+        90deg,
+        #00B8D9,
+        rgba(0, 184, 217, 0.08)
+    );
+}
+
+/* =========================================
+   WEBGUARD — TABLA DE ÚLTIMOS ANÁLISIS
+========================================= */
+
+.dashboard-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 18px;
+}
+
+.dashboard-analysis-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+}
+
+.dashboard-analysis-table thead {
+    background: #142436;
+}
+
+.dashboard-analysis-table th {
+    padding: 14px 15px;
+    color: #B8C9D9;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.dashboard-analysis-table td {
+    padding: 15px;
+    color: #DCE6EF;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.dashboard-analysis-table tbody tr:hover {
+    background: rgba(45, 212, 191, 0.035);
+}
+
+.dashboard-domain-cell {
+    font-weight: 600;
+    color: #F1F5F9 !important;
+}
+
+.dashboard-table-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.dashboard-table-status.status-valid {
+    color: #45E7B4;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.dashboard-table-status.status-invalid {
+    color: #FF7D7D;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.dashboard-table-status.status-unknown {
+    color: #FBBF72;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.dashboard-analysis-table .dashboard-tls-valid {
+    color: #34D399;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.dashboard-analysis-table .dashboard-tls-invalid {
+    color: #FB7185;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.dashboard-muted-cell,
+.dashboard-date-cell {
+    color: #94A3B8 !important;
+}
+
+.dashboard-analysis-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+@media (max-width: 800px) {
+    .dashboard-analysis-table {
+        min-width: 650px;
+    }
+}
+
+/* =========================================
+   WEBGUARD — PROGRESO DE CABECERAS
+========================================= */
+
+.dashboard-headers-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 125px;
+}
+
+.dashboard-headers-progress {
+    width: 90px;
+    height: 8px;
+    background: #263749;
+    border-radius: 20px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.dashboard-headers-fill {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        #00B8D9,
+        #00F5E6
+    );
+    border-radius: inherit;
+    transition: width 0.4s ease;
+}
+
+.dashboard-headers-label {
+    color: #A8B8CA;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* WEBGUARD — NOTIFICACIONES */
+
+.topbar-notifications {
+    position: relative;
+}
+
+.topbar-notifications .topbar-icon-btn {
+    position: relative;
+    cursor: pointer;
+}
+
+.notifications-count:not([hidden]) {
+    position: absolute;
+    top: -5px;
+    right: -6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #00E5D4;
+    color: #071820;
+    font-size: 10px;
+    font-weight: 800;
+    border: 2px solid #0B1120;
+}
+
+.notifications-panel:not([hidden]) {
+    display: block;
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 285px;
+    max-width: calc(100vw - 24px);
+    padding: 18px;
+    background: #152435;
+    border: 1px solid #294456;
+    border-radius: 12px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+    z-index: 1000;
+}
+
+.notifications-panel h3 {
+    margin: 0 0 12px;
+    color: #F1F5F9;
+    font-size: 15px;
+}
+
+.notifications-panel p {
+    color: #B8C9D9;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#notifications-view-alerts {
+    margin-top: 12px;
+    padding: 9px 12px;
+    background: rgba(0, 229, 212, 0.12);
+    border: 1px solid rgba(0, 229, 212, 0.35);
+    border-radius: 8px;
+    color: #00F5E6;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+#notifications-view-alerts:hover {
+    background: rgba(0, 229, 212, 0.22);
+}
+
+/* =========================================
+   WEBGUARD — MENÚ DE USUARIO
+========================================= */
+
+.topbar-account {
+    position: relative;
+}
+
+.topbar-account .topbar-icon-btn {
+    cursor: pointer;
+}
+
+.account-panel:not([hidden]) {
+    display: block;
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 285px;
+    max-width: calc(100vw - 24px);
+    padding: 14px;
+    background: #152435;
+    border: 1px solid #294456;
+    border-radius: 12px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+    z-index: 1000;
+}
+
+.account-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 4px 12px;
+}
+
+.account-panel-avatar {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: #00F5E6;
+    background: rgba(0, 245, 230, 0.10);
+    border: 1px solid rgba(0, 245, 230, 0.2);
+}
+
+.account-panel-header strong {
+    display: block;
+    color: #F1F5F9;
+    font-size: 14px;
+}
+
+.account-panel-header span:not(.account-panel-avatar) {
+    display: block;
+    margin-top: 4px;
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+.account-panel-divider {
+    height: 1px;
+    margin: 4px 0 8px;
+    background: #294456;
+}
+
+.account-panel-option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #D6E3EE;
+    text-align: left;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.account-panel-option:hover {
+    color: #00F5E6;
+    background: rgba(0, 245, 230, 0.09);
+}
+
+.account-panel-footer {
+    margin-top: 10px;
+    padding: 12px 4px 2px;
+    border-top: 1px solid #294456;
+    color: #64748B;
+    font-size: 11px;
+    text-align: center;
+}
+
+/* =========================================
+   WEBGUARD — CONFIGURACIÓN
+========================================= */
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    margin-top: 25px;
+}
+
+.settings-card {
+    background: #142333;
+    border: 1px solid #263D50;
+    border-radius: 14px;
+    padding: 24px;
+    min-width: 0;
+}
+
+.settings-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.settings-card-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 245, 230, 0.10);
+    border: 1px solid rgba(0, 245, 230, 0.20);
+    border-radius: 12px;
+    color: #00F5E6;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.settings-card-header h2 {
+    margin: 0;
+    font-size: 17px;
+    color: #F1F5F9;
+}
+
+.settings-card-header p {
+    margin: 5px 0 0;
+    color: #94A3B8;
+    font-size: 12px;
+}
+
+.settings-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #263749;
+    color: #94A3B8;
+    font-size: 13px;
+}
+
+.settings-info-row:last-of-type {
+    border-bottom: none;
+}
+
+.settings-info-row strong {
+    color: #E2E8F0;
+    font-weight: 600;
+}
+
+.settings-info-row p {
+    margin: 5px 0 0;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.settings-tag {
+    padding: 6px 10px;
+    background: rgba(0, 245, 230, 0.08);
+    border-radius: 7px;
+    color: #00F5E6;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.settings-status {
+    color: #94A3B8;
+    font-weight: 600;
+}
+
+.settings-status.is-online {
+    color: #00F5E6;
+}
+
+.settings-status.is-offline {
+    color: #FB7185;
+}
+
+.settings-check-btn {
+    margin-top: 20px;
+    padding: 10px 15px;
+    border: 1px solid rgba(0, 245, 230, 0.35);
+    border-radius: 8px;
+    background: rgba(0, 245, 230, 0.10);
+    color: #00F5E6;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.settings-check-btn:hover {
+    background: rgba(0, 245, 230, 0.20);
+}
+
+@media (max-width: 850px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
     }
 }
