@@ -194,6 +194,8 @@ def get_domains_status():
             "id": domain["id"],
             "domain": domain["domain"],
             "created_at": domain["created_at"],
+            "client_id": domain["client_id"],
+            "client_name": domain["client_name"],
             "latest_analysis": latest_analysis
         })
 

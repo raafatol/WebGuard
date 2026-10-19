@@ -4,7 +4,11 @@ import re
 
 ALLOWED_DOMAINS = {
     "www.google.com",
-    "example.com"
+    "example.com",
+    "www.cloudflare.com",
+    "expired.badssl.com",
+    "self-signed.badssl.com",
+    "wrong.host.badssl.com"
 }
 
 

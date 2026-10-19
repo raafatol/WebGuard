@@ -901,14 +901,17 @@ button:disabled {
     margin-left: auto;
 }
 
-/* Contenido */
+/* =========================================
+   WEBGUARD — CONTENIDO A ANCHO COMPLETO
+========================================= */
 
 .container {
-    width: auto;
-    max-width: 1450px;
+    width: calc(100% - var(--sidebar-width));
+    max-width: none;
+    box-sizing: border-box;
 
     margin: 0 0 0 var(--sidebar-width);
-    padding: 42px 38px 80px;
+    padding: 32px 24px 60px;
 }
 
 .intro h1 {
@@ -3143,5 +3146,1780 @@ button {
 @media (max-width: 850px) {
     .settings-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================
+   WEBGUARD — TARJETAS DE MONITORIZACIÓN
+========================================= */
+
+.monitor-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.monitor-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-height: 110px;
+    padding: 20px;
+    background: linear-gradient(135deg, #192B40, #111E2E);
+    border: 1px solid #263B50;
+    border-radius: 12px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.monitor-stat-card:hover {
+    transform: translateY(-3px);
+    border-color: #365875;
+}
+
+.monitor-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    flex-shrink: 0;
+}
+
+.monitor-stat-icon svg {
+    width: 26px;
+    height: 26px;
+}
+
+.monitor-stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.monitor-stat-content strong {
+    color: #F8FAFC;
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.monitor-stat-content span {
+    color: #B8C8D9;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Colores por tarjeta */
+
+.monitor-stat-domains .monitor-stat-icon {
+    background: rgba(59, 130, 246, 0.13);
+    color: #3B91FF;
+}
+
+.monitor-stat-secure .monitor-stat-icon {
+    background: rgba(16, 185, 129, 0.13);
+    color: #20D89A;
+}
+
+.monitor-stat-issues .monitor-stat-icon {
+    background: rgba(248, 113, 113, 0.13);
+    color: #FF6B6B;
+}
+
+.monitor-stat-recent .monitor-stat-icon {
+    background: rgba(59, 130, 246, 0.13);
+    color: #3B91FF;
+}
+
+.monitor-stat-recent .monitor-stat-content strong {
+    font-size: 20px;
+}
+
+/* Responsive */
+
+@media (max-width: 1150px) {
+    .monitor-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .monitor-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================
+   WEBGUARD — ICONOS CIRCULARES MONITORIZACIÓN
+========================================= */
+
+.monitor-stat-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.monitor-stat-icon svg {
+    width: 25px;
+    height: 25px;
+}
+
+/* Azul — Dominios monitorizados */
+.monitor-stat-domains .monitor-stat-icon {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3B91FF;
+}
+
+/* Verde — TLS válidos */
+.monitor-stat-secure .monitor-stat-icon {
+    background: rgba(16, 185, 129, 0.15);
+    color: #20D89A;
+}
+
+/* Rojo — TLS no válidos */
+.monitor-stat-issues .monitor-stat-icon {
+    background: rgba(248, 113, 113, 0.15);
+    color: #FF6B6B;
+}
+
+/* Azul — Último análisis */
+.monitor-stat-recent .monitor-stat-icon {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3B91FF;
+}
+
+/* =========================================
+   WEBGUARD — ANALIZADOR DE MONITORIZACIÓN
+========================================= */
+
+#section-monitoring {
+    --monitor-panel-bg: #142337;
+    --monitor-panel-border: #263b50;
+}
+
+/* El formulario y los resultados compartirán fila */
+#section-monitoring .search-panel {
+    background: linear-gradient(145deg, #192b40, #111e2e);
+    border: 1px solid var(--monitor-panel-border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-top: 0;
+}
+
+/* Formulario */
+#section-monitoring .search-panel label {
+    color: #e7f0fa;
+    font-size: 14px;
+}
+
+#section-monitoring .search-panel input {
+    background: #0c1929;
+    border: 1px solid #30465e;
+    color: #f8fafc;
+    border-radius: 9px;
+}
+
+#section-monitoring .search-panel input:focus {
+    border-color: #3b91ff;
+    outline: 2px solid rgba(59, 145, 255, 0.15);
+}
+
+#section-monitoring #analyze-btn {
+    background: #287cf4;
+    color: #fff;
+    border-radius: 9px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+#section-monitoring #analyze-btn:hover:not(:disabled) {
+    background: #4394ff;
+}
+
+/* Resultados */
+#section-monitoring #results {
+    background: linear-gradient(145deg, #192b40, #111e2e);
+    border: 1px solid var(--monitor-panel-border);
+    border-radius: 14px;
+    padding: 24px;
+}
+
+/* Respetar el estado oculto que controla JavaScript */
+#section-monitoring #results[hidden] {
+    display: none !important;
+}
+
+/* =========================================
+   WEBGUARD — ANALIZADOR EN DOS COLUMNAS
+========================================= */
+
+#section-monitoring .monitor-analysis-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+    margin: 24px 0;
+}
+
+#section-monitoring .monitor-analysis-grid > * {
+    min-width: 0;
+}
+
+#section-monitoring .search-panel,
+#section-monitoring .monitor-results-placeholder,
+#section-monitoring #results {
+    background: linear-gradient(145deg, #192b40, #111e2e);
+    border: 1px solid #263b50;
+    border-radius: 14px;
+    padding: 24px;
+    margin: 0;
+}
+
+#section-monitoring .monitor-results-placeholder {
+    min-height: 270px;
+}
+
+#section-monitoring .monitor-placeholder-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#section-monitoring .monitor-placeholder-heading h2 {
+    margin: 0;
+    color: #f1f5f9;
+    font-size: 17px;
+}
+
+#section-monitoring .monitor-placeholder-icon {
+    color: #3b91ff;
+    font-size: 25px;
+}
+
+#section-monitoring .monitor-placeholder-description {
+    color: #94a3b8;
+    font-size: 13px;
+    margin: 12px 0 20px;
+}
+
+#section-monitoring .monitor-placeholder-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 155px;
+    padding: 20px;
+    border: 1px dashed #30465e;
+    border-radius: 12px;
+    text-align: center;
+}
+
+#section-monitoring .monitor-placeholder-symbol {
+    color: #3b91ff;
+    font-size: 32px;
+}
+
+#section-monitoring .monitor-placeholder-empty strong {
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+#section-monitoring .monitor-placeholder-empty p {
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.6;
+    max-width: 270px;
+    margin: 0;
+}
+
+/* Formulario adaptado al ancho de su columna */
+
+#section-monitoring .search-row {
+    flex-wrap: wrap;
+}
+
+#section-monitoring .search-row input {
+    flex: 1 1 220px;
+}
+
+#section-monitoring #analyze-btn {
+    flex: 1 1 150px;
+}
+
+/* Los resultados pueden crecer verticalmente */
+
+#section-monitoring #results .cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+#section-monitoring #results .card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Los atributos hidden siempre deben respetarse */
+
+#section-monitoring #results[hidden],
+#section-monitoring #monitor-results-placeholder[hidden] {
+    display: none !important;
+}
+
+/* Adaptación a pantallas pequeñas */
+
+@media (max-width: 1100px) {
+    #section-monitoring .monitor-analysis-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    #section-monitoring #results .cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================
+   WEBGUARD — PANELES DE ANÁLISIS IGUALADOS
+========================================= */
+
+#section-monitoring .monitor-analysis-grid {
+    align-items: stretch;
+}
+
+#section-monitoring .monitor-analysis-grid > .search-panel,
+#section-monitoring .monitor-analysis-grid > .monitor-results-placeholder {
+    min-height: 270px;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+#section-monitoring .monitor-analysis-grid > .search-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+#section-monitoring .monitor-analysis-grid > .search-panel #message {
+    margin-top: auto;
+}
+
+/* =========================================
+   WEBGUARD — AJUSTES FINALES DEL ANALIZADOR
+========================================= */
+
+#section-monitoring .monitor-analysis-grid {
+    align-items: stretch;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+#section-monitoring .monitor-analysis-grid > .search-panel,
+#section-monitoring .monitor-analysis-grid > .monitor-results-placeholder {
+    min-height: 0;
+    height: 100%;
+    padding: 18px;
+    box-sizing: border-box;
+}
+
+/* Encabezado izquierdo */
+
+#section-monitoring .monitor-panel-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+#section-monitoring .monitor-panel-heading > svg {
+    width: 29px;
+    height: 29px;
+    color: #3b91ff;
+    flex-shrink: 0;
+}
+
+#section-monitoring .monitor-panel-heading h2 {
+    margin: 0 0 8px;
+    color: #f8fafc;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+#section-monitoring .monitor-panel-heading p {
+    margin: 0;
+    color: #a7b8cd;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Formulario */
+
+#section-monitoring .search-panel .search-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+#section-monitoring .search-panel .search-row input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+#section-monitoring .search-panel #analyze-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+#section-monitoring .search-panel .hint {
+    margin-top: 12px;
+}
+
+/* Encabezado derecho */
+
+#section-monitoring .monitor-placeholder-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#section-monitoring .monitor-placeholder-heading > svg {
+    width: 27px;
+    height: 27px;
+    color: #9fb6d2;
+    flex-shrink: 0;
+}
+
+#section-monitoring .monitor-placeholder-heading h2 {
+    font-size: 18px;
+}
+
+#section-monitoring .monitor-placeholder-description {
+    margin: 10px 0 16px;
+    font-size: 13px;
+}
+
+/* Estado vacío */
+
+#section-monitoring .monitor-placeholder-empty {
+    min-height: 105px;
+    padding: 14px;
+    gap: 8px;
+}
+
+#section-monitoring .monitor-placeholder-symbol svg {
+    width: 29px;
+    height: 29px;
+    color: #9fb6d2;
+}
+
+#section-monitoring .monitor-placeholder-empty p {
+    max-width: 320px;
+    font-size: 13px;
+}
+
+/* Pantallas pequeñas */
+
+@media (max-width: 650px) {
+    #section-monitoring .search-panel .search-row {
+        flex-wrap: wrap;
+    }
+
+    #section-monitoring .search-panel #analyze-btn {
+        flex: 1 1 100%;
+    }
+}
+
+/* =========================================
+   WEBGUARD — AJUSTES DEL PROTOTIPO
+========================================= */
+
+/* Encabezado a la izquierda y tarjetas a la derecha */
+
+#section-monitoring .monitor-overview {
+    display: grid;
+    grid-template-columns: minmax(230px, 0.95fr) minmax(0, 3.4fr);
+    align-items: center;
+    gap: 22px;
+    margin: 24px 0 12px;
+}
+
+#section-monitoring .monitor-overview-heading {
+    min-width: 0;
+}
+
+#section-monitoring .monitor-overview-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+}
+
+#section-monitoring .monitor-overview-title > svg {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    color: #3b91ff;
+}
+
+#section-monitoring .monitor-overview-title h2 {
+    margin: 0 0 8px;
+    font-size: 29px;
+    font-weight: 700;
+    color: #f8fafc;
+    line-height: 1.2;
+}
+
+#section-monitoring .monitor-overview-title p {
+    margin: 0;
+    font-size: 13px;
+    color: #a7b8cd;
+    line-height: 1.5;
+}
+
+/* Estadísticas dentro del nuevo encabezado */
+
+#section-monitoring .monitor-overview .monitor-stats {
+    margin: 0;
+    gap: 14px;
+}
+
+#section-monitoring .monitor-stat-card {
+    position: relative;
+    min-width: 0;
+    padding: 18px 15px;
+    padding-right: 18px;
+}
+
+#section-monitoring .monitor-stat-content {
+    padding-right: 2px;
+}
+
+#section-monitoring .monitor-stat-content > span:not(.monitor-stat-extra) {
+    font-size: 12px;
+}
+
+/* Indicadores superiores derechos */
+
+#section-monitoring .monitor-stat-extra {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    border-radius: 7px;
+    padding: 4px 7px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+#section-monitoring .monitor-stat-domains .monitor-stat-extra,
+#section-monitoring .monitor-stat-secure .monitor-stat-extra {
+    background: rgba(16, 185, 129, 0.12);
+    color: #20d89a;
+}
+
+#section-monitoring .monitor-stat-issues .monitor-stat-extra {
+    background: rgba(248, 113, 113, 0.12);
+    color: #ff7777;
+}
+
+#section-monitoring .monitor-stat-recent .monitor-stat-extra {
+    background: rgba(59, 145, 255, 0.12);
+    color: #6daeff;
+}
+
+/* Texto de ayuda con icono */
+
+#section-monitoring .monitor-analysis-hint {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 14px 0 0;
+    color: #b8c8d9;
+}
+
+#section-monitoring .monitor-analysis-hint svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: #3b91ff;
+}
+
+#section-monitoring .monitor-hint-highlight {
+    color: #3b91ff;
+    font-weight: 600;
+}
+
+/* Alinear el texto secundario con el título derecho */
+
+#section-monitoring .monitor-placeholder-description {
+    margin-left: 39px;
+}
+
+/* Adaptación a pantallas medianas */
+
+@media (max-width: 1400px) {
+    #section-monitoring .monitor-overview {
+        grid-template-columns: 1fr;
+    }
+
+    #section-monitoring .monitor-overview .monitor-stats {
+        width: 100%;
+    }
+}
+
+@media (max-width: 700px) {
+    #section-monitoring .monitor-overview-title h2 {
+        font-size: 24px;
+    }
+
+    #section-monitoring .monitor-placeholder-description {
+        margin-left: 0;
+    }
+}
+
+/* =========================================
+   WEBGUARD — AJUSTE VERTICAL MONITORIZACIÓN
+========================================= */
+
+#section-monitoring .monitor-overview {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+/* =========================================
+   WEBGUARD — TABLA DOMINIOS MONITORIZADOS
+========================================= */
+
+#section-monitoring .monitor-domains-panel {
+    margin-top: 16px;
+    padding: 16px;
+    background: linear-gradient(145deg, #192b40, #111e2e);
+    border: 1px solid #263b50;
+    border-radius: 13px;
+}
+
+.monitor-domains-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 18px;
+}
+
+.monitor-domains-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.monitor-domains-title > svg {
+    width: 30px;
+    height: 30px;
+    color: #3b91ff;
+    flex-shrink: 0;
+}
+
+.monitor-domains-title h2 {
+    margin: 0 0 8px;
+    color: #f8fafc;
+    font-size: 19px;
+}
+
+.monitor-domains-title p {
+    margin: 0;
+    color: #a7b8cd;
+    font-size: 13px;
+}
+
+.monitor-domains-tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.monitor-domain-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid #354a63;
+    border-radius: 8px;
+    background: #1b2b40;
+}
+
+.monitor-domain-search svg {
+    width: 19px;
+    height: 19px;
+    color: #a7b8cd;
+    flex-shrink: 0;
+}
+
+.monitor-domain-search input {
+    width: 190px;
+    min-width: 0;
+    padding: 12px 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #f8fafc;
+    font-size: 13px;
+}
+
+.monitor-add-domain-toggle {
+    background: #287cf4;
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.monitor-add-domain-toggle:hover {
+    background: #4394ff;
+}
+
+#monitor-add-domain-panel {
+    margin-bottom: 16px;
+    padding: 15px;
+    background: #101d2e;
+    border: 1px solid #30465e;
+    border-radius: 10px;
+}
+
+#monitor-add-domain-panel[hidden] {
+    display: none !important;
+}
+
+#monitor-add-domain-panel .domain-form {
+    margin: 0;
+}
+
+/* Tabla */
+
+.monitor-domains-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #2b4057;
+    border-radius: 10px;
+}
+
+.monitor-domains-table {
+    width: 100%;
+    min-width: 920px;
+    border-collapse: collapse;
+    color: #dbe6f2;
+    font-size: 13px;
+}
+
+.monitor-domains-table thead {
+    background: #203147;
+}
+
+.monitor-domains-table th {
+    padding: 15px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #e2e8f0;
+    white-space: nowrap;
+    border-bottom: 1px solid #30465e;
+}
+
+.monitor-domains-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #263b50;
+    vertical-align: middle;
+}
+
+.monitor-domains-table tbody tr:nth-child(odd) {
+    background: #111e2d;
+}
+
+.monitor-domains-table tbody tr:nth-child(even) {
+    background: #19293b;
+}
+
+.monitor-domains-table tbody tr:hover {
+    background: #243a52;
+}
+
+.monitor-domains-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Etiquetas TLS */
+
+.monitor-table-tls {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.monitor-table-tls.status-valid {
+    background: rgba(16, 185, 129, 0.12);
+    color: #20d89a;
+}
+
+.monitor-table-tls.status-invalid {
+    background: rgba(248, 113, 113, 0.12);
+    color: #ff7777;
+}
+
+.monitor-table-tls.status-unknown {
+    background: rgba(148, 163, 184, 0.12);
+    color: #a7b8cd;
+}
+
+/* Códigos HTTP */
+
+.monitor-http-badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.monitor-http-success {
+    background: rgba(16, 185, 129, 0.12);
+    color: #20d89a;
+}
+
+.monitor-http-warning {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+}
+
+.monitor-http-error {
+    background: rgba(248, 113, 113, 0.12);
+    color: #ff7777;
+}
+
+/* Barra de cabeceras */
+
+.monitor-headers-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.monitor-headers-progress {
+    width: 105px;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #354760;
+}
+
+.monitor-headers-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: #20d89a;
+}
+
+/* Acciones */
+
+.monitor-table-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.monitor-table-actions .history-button {
+    padding: 8px 15px;
+    background: #263950;
+    color: #e2e8f0;
+    border: 1px solid #38516d;
+    border-radius: 7px;
+    white-space: nowrap;
+}
+
+.monitor-table-actions .delete-domain-btn {
+    padding: 8px 11px;
+    background: rgba(248, 113, 113, 0.09);
+    color: #ff7777;
+    border: 1px solid #a83b45;
+    border-radius: 7px;
+}
+
+/* Mensaje sin dominios */
+
+.monitor-domains-empty {
+    text-align: center;
+    padding: 30px 15px !important;
+    color: #94a3b8;
+}
+
+@media (max-width: 700px) {
+    .monitor-domains-tools {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .monitor-domain-search {
+        flex: 1;
+    }
+
+    .monitor-domain-search input {
+        width: 100%;
+    }
+
+    #monitor-add-domain-panel .domain-form {
+        flex-direction: column;
+    }
+}
+
+/* =========================================
+   WEBGUARD — AJUSTE FINO TABLA DOMINIOS
+========================================= */
+
+/* Distribución equilibrada de columnas */
+.monitor-domains-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+/* Anchura de cada columna */
+.monitor-domains-table th:nth-child(1) {
+    width: 20%;
+}
+
+.monitor-domains-table th:nth-child(2) {
+    width: 14%;
+}
+
+.monitor-domains-table th:nth-child(3) {
+    width: 13%;
+}
+
+.monitor-domains-table th:nth-child(4) {
+    width: 14%;
+}
+
+.monitor-domains-table th:nth-child(5) {
+    width: 12%;
+}
+
+.monitor-domains-table th:nth-child(6) {
+    width: 15%;
+}
+
+.monitor-domains-table th:nth-child(7) {
+    width: 12%;
+}
+
+/* Separadores verticales */
+.monitor-domains-table th:not(:last-child),
+.monitor-domains-table td:not(:last-child) {
+    border-right: 1px solid #2b4057;
+}
+
+/* Espaciado uniforme */
+.monitor-domains-table th,
+.monitor-domains-table td {
+    padding: 15px 16px;
+    text-align: left;
+}
+
+/* Encabezados */
+.monitor-domains-table thead th {
+    background: #203147;
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* Mensaje de tabla vacía */
+.monitor-domains-table td.monitor-domains-empty {
+    text-align: center;
+    padding: 32px 20px !important;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* =========================================
+   WEBGUARD — FILAS REALES DE DOMINIOS
+========================================= */
+
+.monitor-table-domain-name {
+    color: #f1f5f9;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.monitor-table-client,
+.monitor-table-date {
+    color: #a7b8cd;
+}
+
+.monitor-domains-table td {
+    overflow-wrap: anywhere;
+}
+
+.monitor-table-actions .history-button,
+.monitor-table-actions .delete-domain-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+}
+
+.monitor-table-actions .delete-domain-btn svg {
+    display: block;
+    flex-shrink: 0;
+}
+
+.monitor-table-actions .history-button:hover {
+    background: #344d69;
+}
+
+.monitor-table-actions .delete-domain-btn:hover {
+    background: rgba(248, 113, 113, 0.2);
+}
+
+.monitor-headers-progress {
+    flex-shrink: 0;
+}
+
+/* =========================================
+   AJUSTE FINAL — TABLA DE MONITORIZACIÓN
+========================================= */
+
+/* Evitar que la tabla se desborde innecesariamente */
+.monitor-domains-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+}
+
+/* Repartir mejor el espacio entre las columnas */
+.monitor-domains-table th:nth-child(1) { width: 19%; }
+.monitor-domains-table th:nth-child(2) { width: 14%; }
+.monitor-domains-table th:nth-child(3) { width: 13%; }
+.monitor-domains-table th:nth-child(4) { width: 14%; }
+.monitor-domains-table th:nth-child(5) { width: 12%; }
+.monitor-domains-table th:nth-child(6) { width: 13%; }
+.monitor-domains-table th:nth-child(7) { width: 15%; }
+
+/* Dar aire a los botones */
+.monitor-table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.monitor-table-actions .history-button {
+    padding: 7px 10px;
+    white-space: nowrap;
+}
+
+.monitor-table-actions .delete-domain-btn {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+/* Evitar que los botones se peguen a los bordes */
+.monitor-domains-table td:last-child,
+.monitor-domains-table th:last-child {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+/* =========================================
+   AJUSTE DE CABECERAS — MONITORIZACIÓN
+========================================= */
+
+.monitor-headers-cell {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 9px;
+    width: 100%;
+    min-width: 0;
+}
+
+.monitor-headers-cell > span {
+    display: inline-block;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    color: #b9c8da;
+    font-size: 12px;
+}
+
+.monitor-headers-progress {
+    flex: 1 1 auto;
+    min-width: 18px;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #40546e;
+}
+
+.monitor-headers-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: #20c9b0;
+}
+
+/* =========================================
+   MONITORIZACIÓN — ALERTAS E HISTORIAL
+========================================= */
+
+.monitor-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.monitor-bottom-grid > .alerts-panel,
+.monitor-bottom-grid > .history-panel,
+.monitor-bottom-grid > .monitor-history-placeholder {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.monitor-history-placeholder {
+    padding: 24px 20px;
+    background: #1b2637;
+    border: 1px solid #2b4057;
+    border-radius: 10px;
+}
+
+.monitor-history-placeholder-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.monitor-history-placeholder-heading svg {
+    color: #398bff;
+    flex-shrink: 0;
+}
+
+.monitor-history-placeholder-heading h2 {
+    margin: 0;
+    color: #f1f5f9;
+    font-size: 16px;
+}
+
+.monitor-history-placeholder-heading p {
+    margin: 8px 0 0;
+    color: #9aacc1;
+    font-size: 12px;
+}
+
+.monitor-history-placeholder-content {
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px dashed #344a63;
+    border-radius: 9px;
+    text-align: center;
+}
+
+.monitor-history-placeholder-content svg {
+    color: #8ba1ba;
+}
+
+.monitor-history-placeholder-content p {
+    max-width: 280px;
+    margin: 0;
+    color: #91a4ba;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.monitor-bottom-grid .history-table-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+@media (max-width: 1050px) {
+    .monitor-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Respetar la visibilidad del historial y su placeholder */
+.monitor-bottom-grid > [hidden] {
+    display: none !important;
+}
+
+/* =========================================
+   MONITORIZACIÓN — DISTRIBUCIÓN INFERIOR
+========================================= */
+
+#section-monitoring .monitor-bottom-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+    width: 100%;
+}
+
+/* Alertas: columna izquierda */
+#section-monitoring .monitor-bottom-grid > .alerts-panel {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+/* Historial vacío: columna derecha */
+#section-monitoring .monitor-bottom-grid > .monitor-history-placeholder {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+/* Historial abierto: misma posición */
+#section-monitoring .monitor-bottom-grid > .history-panel {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+/* Respetar los paneles ocultos */
+#section-monitoring .monitor-bottom-grid > [hidden] {
+    display: none !important;
+}
+
+/* Adaptación a pantallas estrechas */
+@media (max-width: 1050px) {
+    #section-monitoring .monitor-bottom-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #section-monitoring .monitor-bottom-grid > .alerts-panel {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    #section-monitoring .monitor-bottom-grid > .monitor-history-placeholder,
+    #section-monitoring .monitor-bottom-grid > .history-panel {
+        grid-column: 1;
+        grid-row: 2;
+    }
+}
+
+/* =========================================
+   MONITORIZACIÓN — DISEÑO ADAPTABLE
+========================================= */
+
+/* Cuando hay resultados, los paneles pasan a una columna */
+#section-monitoring .monitor-analysis-grid.has-results {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+}
+
+/* El formulario ocupa una fila compacta */
+#section-monitoring .monitor-analysis-grid.has-results > .search-panel {
+    grid-column: 1;
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    align-self: start;
+}
+
+/* Los resultados ocupan todo el ancho */
+#section-monitoring .monitor-analysis-grid.has-results > #results {
+    grid-column: 1;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    box-sizing: border-box;
+}
+
+/* Mantener ocultos los elementos que no correspondan */
+#section-monitoring .monitor-analysis-grid > [hidden] {
+    display: none !important;
+}
+
+/* =========================================
+   MONITORIZACIÓN — ENCABEZADOS INFERIORES
+========================================= */
+
+#section-monitoring .monitor-bottom-grid
+.monitor-bottom-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+#section-monitoring .monitor-bottom-grid
+.monitor-bottom-heading > svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: #348cff;
+    margin-top: 1px;
+}
+
+#section-monitoring .monitor-bottom-grid
+.monitor-bottom-heading-text {
+    flex: 1;
+    min-width: 0;
+}
+
+#section-monitoring .monitor-bottom-grid
+.monitor-bottom-heading-text h2 {
+    margin: 0;
+    color: #f1f5f9;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+#section-monitoring .monitor-bottom-grid
+.monitor-bottom-heading-text p {
+    margin: 7px 0 0;
+    color: #9eafc5;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: normal;
+}
+
+#section-monitoring .monitor-bottom-grid
+.alerts-heading,
+#section-monitoring .monitor-bottom-grid
+.history-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+#section-monitoring .monitor-bottom-grid
+.refresh-alerts-btn,
+#section-monitoring .monitor-bottom-grid
+.history-heading .cancel-btn {
+    flex-shrink: 0;
+}
+
+/* Igualar el encabezado del historial vacío */
+#section-monitoring
+.monitor-history-placeholder-heading {
+    gap: 12px;
+}
+
+#section-monitoring
+.monitor-history-placeholder-heading h2 {
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+#section-monitoring
+.monitor-history-placeholder-heading p {
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* =========================================
+   WEBGUARD — ENCABEZADOS UNIFICADOS
+========================================= */
+
+/* Iconos de los paneles */
+#section-monitoring .monitor-panel-heading > svg,
+#section-monitoring .monitor-domains-title > svg,
+#section-monitoring .monitor-placeholder-heading > svg,
+#section-monitoring .monitor-bottom-heading > svg,
+#section-monitoring .monitor-history-placeholder-heading > svg {
+    width: 22px !important;
+    height: 22px !important;
+    flex: 0 0 22px;
+    color: #348cff;
+    margin-top: 0;
+}
+
+/* Títulos de los paneles */
+#section-monitoring .monitor-panel-heading h2,
+#section-monitoring .monitor-domains-title h2,
+#section-monitoring .monitor-placeholder-heading h2,
+#section-monitoring .monitor-bottom-heading h2,
+#section-monitoring .monitor-history-placeholder-heading h2 {
+    font-size: 16px !important;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Textos secundarios */
+#section-monitoring .monitor-panel-heading p,
+#section-monitoring .monitor-domains-title p,
+#section-monitoring .monitor-placeholder-description,
+#section-monitoring .monitor-bottom-heading p,
+#section-monitoring .monitor-history-placeholder-heading p {
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    font-weight: 400;
+    color: #9eafc5;
+}
+
+/* Espaciado entre iconos y texto */
+#section-monitoring .monitor-panel-heading,
+#section-monitoring .monitor-domains-title,
+#section-monitoring .monitor-bottom-heading,
+#section-monitoring .monitor-history-placeholder-heading {
+    gap: 12px;
+    align-items: flex-start;
+}
+
+/* =========================================
+   WEBGUARD — TLS NO COMPROBADO
+========================================= */
+
+/* Estado TLS en la tabla de monitorización */
+#section-monitoring .monitor-table-tls.status-unchecked {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.25);
+}
+
+/* Estado TLS en la pestaña Clientes */
+.domain-tls-badge.status-unchecked {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.25);
+}
+
+/* Estado TLS en los resultados del análisis */
+#section-monitoring #tls-status.warning {
+    color: #f59e0b;
+}
+
+/* Historial: TLS no comprobado */
+#section-monitoring .history-unchecked {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+/* =========================================
+   CLIENTES — TARJETAS DESPLEGABLES
+========================================= */
+
+.client-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    min-width: 0;
+    gap: 16px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.client-toggle-btn:hover .client-item-name {
+    color: #2dd4bf;
+}
+
+.client-toggle-btn:focus-visible {
+    outline: 2px solid #2dd4bf;
+    outline-offset: 5px;
+    border-radius: 4px;
+}
+
+.client-expand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    color: #94a3b8;
+    font-size: 23px;
+    transition: transform 0.2s ease;
+}
+
+.client-item.expanded .client-expand-icon {
+    transform: rotate(180deg);
+}
+
+/* Asegurar que el contenido oculto no se muestre */
+.client-domains[hidden] {
+    display: none !important;
+}
+
+.client-item-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.client-actions {
+    flex-shrink: 0;
+}
+
+/* =========================================
+   CLIENTES — CORRECCIÓN DEL HOVER
+========================================= */
+
+.client-toggle-btn,
+.client-toggle-btn:hover,
+.client-toggle-btn:focus,
+.client-toggle-btn:active {
+    background: transparent;
+    background-color: transparent;
+    color: inherit;
+    box-shadow: none;
+}
+
+/* El texto conserva su color y solo cambia ligeramente al pasar el ratón */
+.client-toggle-btn .client-item-name {
+    color: #f1f5f9;
+    transition: color 0.2s ease;
+}
+
+.client-toggle-btn:hover .client-item-name {
+    color: #2dd4bf;
+}
+
+.client-toggle-btn .client-item-email {
+    color: #94a3b8;
+}
+
+/* =========================================
+   CLIENTES — BUSCADOR
+========================================= */
+
+.clients-search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin: 20px 0 24px;
+    padding: 0 15px;
+    min-height: 46px;
+    background: #111827;
+    border: 1px solid #334155;
+    border-radius: 9px;
+    transition: border-color 0.2s ease;
+}
+
+.clients-search:focus-within {
+    border-color: #2dd4bf;
+}
+
+.clients-search svg {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+    color: #94a3b8;
+}
+
+.clients-search input,
+.clients-search input:hover,
+.clients-search input:focus {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    box-shadow: none;
+    color: #f1f5f9;
+    font: inherit;
+}
+
+.clients-search input::placeholder {
+    color: #64748b;
+}
+
+/* Respetar el atributo hidden al filtrar */
+.client-item[hidden] {
+    display: none !important;
+}
+
+/* =========================================
+   CLIENTES — ESTADÍSTICAS SUPERIORES
+========================================= */
+
+.clients-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin: 24px 0;
+}
+
+.clients-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 24px;
+    background: #1b2637;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    min-width: 0;
+}
+
+.clients-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(45, 212, 191, 0.1);
+    color: #2dd4bf;
+}
+
+.clients-stat-icon svg {
+    width: 25px;
+    height: 25px;
+}
+
+.clients-stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.clients-stat-content strong {
+    font-size: 29px;
+    line-height: 1.1;
+    color: #f8fafc;
+    font-weight: 700;
+}
+
+.clients-stat-content span {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+@media (max-width: 850px) {
+    .clients-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================
+   CLIENTES — ICONOS DE ESTADÍSTICAS
+========================================= */
+
+/* Todos los iconos tendrán un fondo circular */
+.clients-stat-icon {
+    border-radius: 50%;
+}
+
+/* Problemas TLS confirmados: icono y círculo rojos */
+.clients-stat-card:last-child .clients-stat-icon {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+/* =========================================
+   CLIENTES — FORMULARIO DESPLEGABLE
+========================================= */
+
+.clients-create-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.clients-create-header .clients-heading {
+    margin-bottom: 0;
+}
+
+.clients-create-toggle {
+    flex-shrink: 0;
+    padding: 11px 18px;
+    background: #2dd4bf;
+    border: 1px solid #2dd4bf;
+    border-radius: 8px;
+    color: #062c2b;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.clients-create-toggle:hover {
+    background: #5eead4;
+}
+
+#client-form-container {
+    margin-top: 24px;
+}
+
+#client-form-container[hidden] {
+    display: none !important;
+}
+
+.clients-create-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.clients-create-cancel {
+    padding: 11px 18px;
+    background: transparent;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    color: #cbd5e1;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.clients-create-cancel:hover {
+    background: #263449;
+    color: #f8fafc;
+}
+
+@media (max-width: 650px) {
+    .clients-create-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .clients-create-toggle {
+        width: 100%;
     }
 }

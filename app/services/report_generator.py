@@ -179,7 +179,15 @@ def generate_client_report(client_id):
         elif tls_valid is False:
             tls_status = "No válido"
         else:
-            tls_status = "No determinado"
+            tls_status = "No comprobado"
+
+        if analysis["headers_present"] is None:
+            headers_status = "No comprobadas"
+        else:
+            headers_status = (
+                f"{analysis['headers_present']} / "
+                f"{analysis['headers_total'] or 0}"
+            )
 
         metrics = [
             ["Indicador", "Resultado"],
@@ -187,11 +195,7 @@ def generate_client_report(client_id):
             ["Certificado TLS", tls_status],
             ["Días restantes TLS", safe_text(analysis["tls_days_left"])],
             ["Estado HTTP", safe_text(analysis["http_status"])],
-            [
-                "Cabeceras detectadas",
-                f"{analysis['headers_present'] or 0} / "
-                f"{analysis['headers_total'] or 0}"
-            ],
+            ["Cabeceras detectadas", headers_status],
         ]
 
         table = Table(metrics, colWidths=[7 * cm, 9 * cm])

@@ -54,8 +54,8 @@ function displayTLS(tls) {
         setStatus(tlsStatus, "Certificado TLS no válido", "error");
         tlsExpiry.textContent = tls.error || "";
     } else {
-        setStatus(tlsStatus, "Estado TLS no disponible", "warning");
-        tlsExpiry.textContent = tls.error || "";
+        setStatus(tlsStatus, "Certificado TLS no comprobado", "warning");
+        tlsExpiry.textContent = tls.error || "No se pudo verificar el certificado.";
     }
 }
 
@@ -170,6 +170,14 @@ function displayRecommendations(recommendations) {
     }
 }
 
+const monitorResultsPlaceholder = document.getElementById(
+    "monitor-results-placeholder"
+);
+
+const monitorAnalysisGrid = document.querySelector(
+    "#section-monitoring .monitor-analysis-grid"
+);
+
 analyzeForm.addEventListener("submit", async event => {
     event.preventDefault();
 
@@ -178,6 +186,7 @@ analyzeForm.addEventListener("submit", async event => {
 
     analyzeBtn.disabled = true;
     results.hidden = true;
+    monitorResultsPlaceholder.hidden = false;
     setStatus(message, "Analizando dominio...");
 
     try {
@@ -198,8 +207,19 @@ analyzeForm.addEventListener("submit", async event => {
         displayHTTP(data.http || {});
         displayRecommendations(data.recommendations);
 
+        monitorResultsPlaceholder.hidden = true;
         results.hidden = false;
+
+        monitorAnalysisGrid.classList.add("has-results");
+
         setStatus(message, "Análisis completado y guardado.", "ok");
+                // Actualizar los datos de monitorización
+        await Promise.all([
+            loadDomains(),
+            loadMonitoringStats(),
+            loadClientStats(),
+            loadAlerts()
+        ]);
 
         // Actualizar el historial si está abierto
         if (
@@ -277,6 +297,9 @@ deleteModal.addEventListener("close", () => {
 
 const historyPanel = document.getElementById("history-panel");
 const historyDomain = document.getElementById("history-domain");
+const historyPlaceholder = document.getElementById(
+    "monitor-history-placeholder"
+);
 const historyMessage = document.getElementById("history-message");
 const historyBody = document.getElementById("history-body");
 const closeHistoryBtn = document.getElementById("close-history-btn");
@@ -315,7 +338,9 @@ function createHistoryCell(row, text, className = "") {
 async function loadHistory(domain) {
     const requestId = ++historyRequestId;
 
+    historyPlaceholder.hidden = true;
     historyPanel.hidden = false;
+
     historyDomain.textContent = domain;
     historyBody.replaceChildren();
     setStatus(historyMessage, "Cargando historial...");
@@ -363,8 +388,8 @@ async function loadHistory(domain) {
                 formatDate(analysis.analyzed_at)
             );
 
-            let tlsText = "Sin datos";
-            let tlsClass = "history-neutral";
+            let tlsText = "No comprobado";
+            let tlsClass = "history-unchecked";
 
             if (analysis.tls_valid === true) {
                 tlsText = "Válido";
@@ -403,181 +428,271 @@ async function loadHistory(domain) {
 closeHistoryBtn.addEventListener("click", () => {
     historyRequestId++;
     historyPanel.hidden = true;
+    historyPlaceholder.hidden = false;
 });
 
 // =========================================
 // CARGAR DOMINIOS
 // =========================================
 
-async function loadDomains() {
+// =========================================
+// TABLA DE DOMINIOS MONITORIZADOS
+// =========================================
+
+let monitoredDomains = [];
+
+function createDomainCell(row, content, className = "") {
+    const cell = document.createElement("td");
+
+    if (className) {
+        cell.className = className;
+    }
+
+    if (content instanceof Node) {
+        cell.appendChild(content);
+    } else {
+        cell.textContent = content;
+    }
+
+    row.appendChild(cell);
+    return cell;
+}
+
+function renderDomainsTable() {
+    const filterInput = document.getElementById("monitor-domain-filter");
+    const search = filterInput?.value.trim().toLowerCase() || "";
+
     domainsList.replaceChildren();
 
+    const filteredDomains = monitoredDomains.filter(domain =>
+        domain.domain.toLowerCase().includes(search) ||
+        (domain.client_name || "").toLowerCase().includes(search)
+    );
+
+    if (filteredDomains.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        cell.colSpan = 7;
+        cell.className = "monitor-domains-empty";
+        cell.textContent = monitoredDomains.length === 0
+            ? "Todavía no has añadido dominios."
+            : "No se encontraron dominios con esa búsqueda.";
+
+        row.appendChild(cell);
+        domainsList.appendChild(row);
+        return;
+    }
+
+    for (const domain of filteredDomains) {
+        const row = document.createElement("tr");
+        const latest = domain.latest_analysis;
+
+        // 1. Dominio
+        const name = document.createElement("strong");
+        name.className = "monitor-table-domain-name";
+        name.textContent = domain.domain;
+        createDomainCell(row, name);
+
+        // 2. Cliente
+        createDomainCell(
+            row,
+            domain.client_name || "Sin cliente",
+            "monitor-table-client"
+        );
+
+        // 3. Estado TLS
+        const tlsBadge = document.createElement("span");
+        tlsBadge.className = "monitor-table-tls";
+
+        if (!latest) {
+            tlsBadge.textContent = "● Pendiente";
+            tlsBadge.classList.add("status-unknown");
+        } else if (latest.tls_valid === true) {
+            tlsBadge.textContent = "● Válido";
+            tlsBadge.classList.add("status-valid");
+        } else if (latest.tls_valid === false) {
+            tlsBadge.textContent = "● No válido";
+            tlsBadge.classList.add("status-invalid");
+        } else {
+            tlsBadge.textContent = "● No comprobado";
+            tlsBadge.classList.add("status-unchecked");
+        }
+
+        createDomainCell(row, tlsBadge);
+
+        // 4. Último análisis
+        createDomainCell(
+            row,
+            latest?.analyzed_at
+                ? formatDate(latest.analyzed_at)
+                : "Nunca",
+            "monitor-table-date"
+        );
+
+        // 5. Respuesta HTTP
+        const httpBadge = document.createElement("span");
+        httpBadge.className = "monitor-http-badge";
+
+        const httpStatus = latest?.http_status;
+
+        if (httpStatus == null) {
+            httpBadge.textContent = "Sin datos";
+        } else {
+            httpBadge.textContent = String(httpStatus);
+
+            if (httpStatus >= 200 && httpStatus < 400) {
+                httpBadge.classList.add("monitor-http-success");
+            } else if (httpStatus >= 400 && httpStatus < 500) {
+                httpBadge.classList.add("monitor-http-warning");
+            } else if (httpStatus >= 500) {
+                httpBadge.classList.add("monitor-http-error");
+            }
+        }
+
+        createDomainCell(row, httpBadge);
+
+        // 6. Cabeceras de seguridad
+        const headersContainer = document.createElement("div");
+        headersContainer.className = "monitor-headers-cell";
+
+        const headersText = document.createElement("span");
+
+        const present = latest?.headers_present;
+        const total = latest?.headers_total;
+
+        if (
+            typeof present === "number" &&
+            typeof total === "number" &&
+            total > 0
+        ) {
+            headersText.textContent = `${present}/${total}`;
+
+            const progress = document.createElement("div");
+            progress.className = "monitor-headers-progress";
+
+            const fill = document.createElement("div");
+            fill.className = "monitor-headers-progress-fill";
+
+            const percentage = Math.max(
+                0,
+                Math.min(100, (present / total) * 100)
+            );
+
+            fill.style.width = `${percentage}%`;
+
+            progress.appendChild(fill);
+            headersContainer.append(headersText, progress);
+        } else {
+            headersText.textContent = "Sin datos";
+            headersContainer.appendChild(headersText);
+        }
+
+        createDomainCell(row, headersContainer);
+
+        // 7. Acciones
+        const actions = document.createElement("div");
+        actions.className = "monitor-table-actions";
+
+        const historyBtn = document.createElement("button");
+        historyBtn.type = "button";
+        historyBtn.className = "history-button";
+        historyBtn.textContent = "Historial";
+
+        historyBtn.addEventListener("click", () => {
+            loadHistory(domain.domain);
+        });
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "delete-domain-btn";
+        deleteBtn.title = "Eliminar dominio";
+        deleteBtn.setAttribute(
+            "aria-label",
+            `Eliminar ${domain.domain}`
+        );
+
+        deleteBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="17" height="17"
+                 fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round"
+                 stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18"/>
+                <path d="M8 6V4h8v2"/>
+                <path d="M5 6l1 15h12l1-15"/>
+                <path d="M10 10v7"/>
+                <path d="M14 10v7"/>
+            </svg>
+        `;
+
+        deleteBtn.addEventListener("click", async () => {
+            const confirmed = await askDeleteConfirmation(domain.domain);
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch(
+                    `/domains/${domain.id}`,
+                    { method: "DELETE" }
+                );
+
+                if (!response.ok) {
+                    const data = await response.json();
+
+                    throw new Error(
+                        getErrorMessage(
+                            data,
+                            "No se pudo eliminar el dominio"
+                        )
+                    );
+                }
+
+                if (
+                    !historyPanel.hidden &&
+                    historyDomain.textContent === domain.domain
+                ) {
+                    historyRequestId++;
+                    historyPanel.hidden = true;
+                    historyPlaceholder.hidden = false;
+                }
+
+                showDomainMessage("Dominio eliminado correctamente.");
+
+                // Actualizar los datos de monitorización y las alertas
+                await Promise.all([
+                    loadDomains(),
+                    loadMonitoringStats(),
+                    loadClientStats(),
+                    loadAlerts()
+                ]);
+
+            } catch (error) {
+                showDomainMessage(error.message, true);
+            }
+        });
+
+        actions.append(historyBtn, deleteBtn);
+        createDomainCell(row, actions);
+
+        domainsList.appendChild(row);
+    }
+}
+
+async function loadDomains() {
     try {
         const response = await fetch("/domains/status");
-        const data = await response.json();
 
         if (!response.ok) {
             throw new Error("No se pudieron cargar los dominios");
         }
 
-        if (!Array.isArray(data) || data.length === 0) {
-            const empty = document.createElement("p");
-            empty.textContent = "Todavía no has añadido dominios.";
-            domainsList.appendChild(empty);
-            return;
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+            throw new Error("La respuesta de dominios no es válida");
         }
 
-        for (const domain of data) {
-            
-            const item = document.createElement("div");
-            item.className = "domain-item domain-monitor-card";
-
-            const info = document.createElement("div");
-            info.className = "domain-monitor-info";
-
-            const heading = document.createElement("div");
-            heading.className = "domain-monitor-heading";
-
-            const name = document.createElement("strong");
-            name.textContent = domain.domain;
-
-            const tlsBadge = document.createElement("span");
-            tlsBadge.className = "domain-tls-badge";
-
-            const latest = domain.latest_analysis;
-
-            if (!latest) {
-                tlsBadge.textContent = "Pendiente de análisis";
-                tlsBadge.classList.add("status-unknown");
-            } else if (latest.tls_valid === true) {
-                tlsBadge.textContent = "TLS válido";
-                tlsBadge.classList.add("status-valid");
-            } else if (latest.tls_valid === false) {
-                tlsBadge.textContent = "TLS no válido";
-                tlsBadge.classList.add("status-invalid");
-            } else {
-                tlsBadge.textContent = "TLS sin datos";
-                tlsBadge.classList.add("status-unknown");
-            }
-
-            heading.append(name, tlsBadge);
-            info.appendChild(heading);
-
-            const metrics = document.createElement("div");
-            metrics.className = "domain-monitor-metrics";
-
-            function addMetric(label, value) {
-                const metric = document.createElement("div");
-                metric.className = "domain-monitor-metric";
-
-                const metricLabel = document.createElement("span");
-                metricLabel.className = "metric-label";
-                metricLabel.textContent = label;
-
-                const metricValue = document.createElement("strong");
-                metricValue.textContent = value;
-
-                metric.append(metricLabel, metricValue);
-                metrics.appendChild(metric);
-            }
-
-            if (latest) {
-                addMetric(
-                    "Último análisis",
-                    formatDate(latest.analyzed_at)
-                );
-
-                addMetric(
-                    "Respuesta HTTP",
-                    latest.http_status != null
-                        ? String(latest.http_status)
-                        : "Sin datos"
-                );
-
-                addMetric(
-                    "Caducidad TLS",
-                    latest.tls_days_left != null
-                        ? `${latest.tls_days_left} días`
-                        : "Sin datos"
-                );
-
-                addMetric(
-                    "Cabeceras detectadas",
-                    latest.headers_present != null &&
-                    latest.headers_total != null
-                        ? `${latest.headers_present}/${latest.headers_total}`
-                        : "Sin datos"
-                );
-            } else {
-                addMetric("Último análisis", "Nunca");
-                addMetric("Respuesta HTTP", "Sin datos");
-                addMetric("Caducidad TLS", "Sin datos");
-                addMetric("Cabeceras detectadas", "Sin datos");
-            }
-
-            info.appendChild(metrics);
-
-            const actions = document.createElement("div");
-            actions.className = "domain-actions";
-
-
-            const historyBtn = document.createElement("button");
-            historyBtn.type = "button";
-            historyBtn.className = "history-button";
-            historyBtn.textContent = "Ver historial";
-
-            historyBtn.addEventListener("click", () => {
-                loadHistory(domain.domain);
-            });
-
-            const deleteBtn = document.createElement("button");
-            deleteBtn.type = "button";
-            deleteBtn.className = "delete-domain-btn";
-            deleteBtn.textContent = "Eliminar";
-
-            deleteBtn.addEventListener("click", async () => {
-                const confirmed = await askDeleteConfirmation(
-                    domain.domain
-                );
-
-                if (!confirmed) return;
-
-                try {
-                    const response = await fetch(
-                        `/domains/${domain.id}`,
-                        { method: "DELETE" }
-                    );
-
-                    if (!response.ok) {
-                        const data = await response.json();
-                        throw new Error(
-                            getErrorMessage(
-                                data,
-                                "No se pudo eliminar el dominio"
-                            )
-                        );
-                    }
-
-                    if (
-                        !historyPanel.hidden &&
-                        historyDomain.textContent === domain.domain
-                    ) {
-                        historyRequestId++;
-                        historyPanel.hidden = true;
-                    }
-
-                    showDomainMessage("Dominio eliminado correctamente.");
-                    await loadDomains();
-
-                } catch (error) {
-                    showDomainMessage(error.message, true);
-                }
-            });
-
-            actions.append(historyBtn, deleteBtn);
-            item.append(info, actions);
-            domainsList.appendChild(item);
-        }
+        monitoredDomains = data;
+        renderDomainsTable();
 
     } catch (error) {
         showDomainMessage(error.message, true);
@@ -623,7 +738,12 @@ domainForm.addEventListener("submit", async event => {
         newDomainInput.value = "";
         domainClientSelect.value = "";
         showDomainMessage("Dominio añadido correctamente.");
-        await loadDomains();
+
+        await Promise.all([
+            loadDomains(),
+            loadMonitoringStats(),
+            loadClientStats()
+        ]);
 
     } catch (error) {
         showDomainMessage(error.message, true);
@@ -787,8 +907,19 @@ function navigateTo(section) {
 
 // Registrar los eventos de navegación.
 navigationButtons.forEach(button => {
-    button.addEventListener("click", () => {
-        navigateTo(button.dataset.section);
+    button.addEventListener("click", async () => {
+        const section = button.dataset.section;
+
+        navigateTo(section);
+
+        // Actualizar los clientes y sus dominios
+        // cada vez que se abre la pestaña Clientes.
+        if (section === "clients") {
+        await Promise.all([
+            loadClients(),
+            loadClientStats()
+        ]);
+    }
     });
 });
 
@@ -801,11 +932,15 @@ navigateTo("overview");
 ========================================= */
 
 const clientForm = document.getElementById("client-form");
+const toggleClientFormBtn = document.getElementById("toggle-client-form-btn");
+const cancelClientFormBtn = document.getElementById("cancel-client-form-btn");
+const clientFormContainer = document.getElementById("client-form-container");
 const clientNameInput = document.getElementById("client-name");
 const clientEmailInput = document.getElementById("client-email");
 const createClientBtn = document.getElementById("create-client-btn");
 const clientMessage = document.getElementById("client-message");
 const clientsList = document.getElementById("clients-list");
+const clientsSearchInput = document.getElementById("clients-search-input");
 
 
 const editClientModal = document.getElementById("edit-client-modal");
@@ -835,6 +970,48 @@ const confirmDeleteClientBtn = document.getElementById(
 
 let deletingClientId = null;
 
+// Estadísticas generales de la sección Clientes
+async function loadClientStats() {
+    const totalElement = document.getElementById("clients-stat-total");
+    const domainsElement = document.getElementById("clients-stat-domains");
+    const issuesElement = document.getElementById("clients-stat-issues");
+
+    try {
+        const [clientsResponse, domainsResponse] = await Promise.all([
+            fetch("/clients"),
+            fetch("/domains/status")
+        ]);
+
+        if (!clientsResponse.ok || !domainsResponse.ok) {
+            throw new Error("No se pudieron cargar las estadísticas");
+        }
+
+        const clients = await clientsResponse.json();
+        const domains = await domainsResponse.json();
+
+        if (!Array.isArray(clients) || !Array.isArray(domains)) {
+            throw new Error("Datos de estadísticas no válidos");
+        }
+
+        const associatedDomains = domains.filter(
+            domain => domain.client_id !== null && domain.client_id !== undefined
+        );
+
+        const tlsIssues = associatedDomains.filter(
+            domain => domain.latest_analysis?.tls_valid === false
+        );
+
+        totalElement.textContent = clients.length;
+        domainsElement.textContent = associatedDomains.length;
+        issuesElement.textContent = tlsIssues.length;
+
+    } catch (error) {
+        console.error("Error al cargar estadísticas de clientes:", error);
+        totalElement.textContent = "—";
+        domainsElement.textContent = "—";
+        issuesElement.textContent = "—";
+    }
+}
 
 // Consultar los clientes registrados
 async function loadClients() {
@@ -861,6 +1038,16 @@ async function loadClients() {
 
         clientsList.replaceChildren();
 
+        // Filtrar por nombre o correo del cliente.
+        const searchTerm = clientsSearchInput.value.trim().toLowerCase();
+
+        const filteredClients = data.filter(client => {
+            const name = (client.name || "").toLowerCase();
+            const email = (client.email || "").toLowerCase();
+
+            return name.includes(searchTerm) || email.includes(searchTerm);
+        });
+
         if (data.length === 0) {
             const empty = document.createElement("p");
             empty.className = "clients-empty";
@@ -869,7 +1056,15 @@ async function loadClients() {
             return;
         }
 
-        for (const client of data) {
+        if (filteredClients.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "clients-empty";
+            empty.textContent = "No se encontraron clientes.";
+            clientsList.appendChild(empty);
+            return;
+        }
+
+        for (const client of filteredClients) {
             const item = document.createElement("div");
             item.className = "client-item";
 
@@ -937,14 +1132,52 @@ async function loadClients() {
 
             const clientHeader = document.createElement("div");
             clientHeader.className = "client-item-header";
-            clientHeader.append(details, actions);
+
+            // Indicador visual del desplegable
+            const expandIcon = document.createElement("span");
+            expandIcon.className = "client-expand-icon";
+            expandIcon.textContent = "⌄";
+            expandIcon.setAttribute("aria-hidden", "true");
+
+            // Zona pulsable para desplegar el cliente
+            const toggleBtn = document.createElement("button");
+            toggleBtn.type = "button";
+            toggleBtn.className = "client-toggle-btn";
+            toggleBtn.setAttribute("aria-expanded", "false");
+            toggleBtn.setAttribute(
+                "aria-label",
+                `Mostrar dominios de ${client.name}`
+            );
+
+            toggleBtn.append(details, expandIcon);
+
+            // Mantener los botones Editar y Eliminar independientes
+            clientHeader.append(toggleBtn, actions);
 
             const domainsContainer = document.createElement("div");
             domainsContainer.className = "client-domains";
+            domainsContainer.hidden = true;
+
+            toggleBtn.addEventListener("click", () => {
+                const expanded = toggleBtn.getAttribute("aria-expanded") === "true";
+                const nextExpanded = !expanded;
+
+                domainsContainer.hidden = !nextExpanded;
+                toggleBtn.setAttribute("aria-expanded", String(nextExpanded));
+
+                toggleBtn.setAttribute(
+                    "aria-label",
+                    `${nextExpanded ? "Ocultar" : "Mostrar"} dominios de ${client.name}`
+                );
+
+                item.classList.toggle("expanded", nextExpanded);
+            });
 
             item.append(clientHeader, domainsContainer);
             clientsList.appendChild(item);
 
+            // Seguimos cargando los datos para actualizar el contador,
+            // aunque los dominios estén inicialmente ocultos.
             loadClientDomains(client.id, domainsContainer);
 
 
@@ -955,6 +1188,71 @@ async function loadClients() {
         setStatus(clientMessage, error.message, "error");
     }
 }
+
+// Filtrar los clientes visibles mientras se escribe.
+clientsSearchInput.addEventListener("input", () => {
+    const searchTerm = clientsSearchInput.value.trim().toLowerCase();
+
+    const clientItems = clientsList.querySelectorAll(".client-item");
+
+    let visibleCount = 0;
+
+    clientItems.forEach(item => {
+        const name = item.querySelector(".client-item-name")?.textContent.toLowerCase() || "";
+        const email = item.querySelector(".client-item-email")?.textContent.toLowerCase() || "";
+
+        const matches = name.includes(searchTerm) || email.includes(searchTerm);
+
+        item.hidden = !matches;
+
+        if (matches) {
+            visibleCount++;
+        }
+    });
+
+    const previousMessage = clientsList.querySelector(".clients-search-empty");
+    if (previousMessage) {
+        previousMessage.remove();
+    }
+
+    if (clientItems.length > 0 && visibleCount === 0) {
+        const empty = document.createElement("p");
+        empty.className = "clients-empty clients-search-empty";
+        empty.textContent = "No se encontraron clientes.";
+        clientsList.appendChild(empty);
+    }
+});
+
+// Abrir o cerrar el formulario de creación de clientes
+function setClientFormExpanded(expanded) {
+    clientFormContainer.hidden = !expanded;
+
+    toggleClientFormBtn.setAttribute(
+        "aria-expanded",
+        String(expanded)
+    );
+
+    toggleClientFormBtn.textContent = expanded
+        ? "− Ocultar formulario"
+        : "+ Nuevo cliente";
+
+    if (expanded) {
+        clientNameInput.focus();
+    }
+}
+
+toggleClientFormBtn.addEventListener("click", () => {
+    const expanded = toggleClientFormBtn.getAttribute("aria-expanded") === "true";
+
+    setClientFormExpanded(!expanded);
+});
+
+// Cancelar la creación
+cancelClientFormBtn.addEventListener("click", () => {
+    clientForm.reset();
+    setStatus(clientMessage, "");
+    setClientFormExpanded(false);
+});
 
 // Registrar un nuevo cliente
 clientForm.addEventListener("submit", async event => {
@@ -993,8 +1291,13 @@ clientForm.addEventListener("submit", async event => {
 
         clientForm.reset();
 
-        await loadClients();
-        await loadDomainClients();
+        await Promise.all([
+            loadClients(),
+            loadDomainClients(),
+            loadClientStats()
+        ]);
+
+        setClientFormExpanded(false);
 
         setStatus(
             clientMessage,
@@ -1196,8 +1499,12 @@ confirmDeleteClientBtn.addEventListener("click", async () => {
 
         deleteClientModal.close();
 
-        await loadClients();
-        await loadDomainClients();
+        // Actualizar clientes, selectores y estadísticas
+        await Promise.all([
+            loadClients(),
+            loadDomainClients(),
+            loadClientStats()
+        ]);
 
         setStatus(
             clientMessage,
@@ -1358,8 +1665,13 @@ async function loadClientDomains(clientId, container) {
                     historyPanel.hidden = true;
                 }
 
-                // Actualizar ambas pestañas
-                await loadDomains();
+                // Actualizar dominios y estadísticas de ambas pestañas
+                await Promise.all([
+                    loadDomains(),
+                    loadMonitoringStats(),
+                    loadClientStats()
+                ]);
+
                 await loadClientDomains(clientId, container);
 
                 setStatus(
@@ -1399,8 +1711,8 @@ async function loadClientDomains(clientId, container) {
                 tlsBadge.textContent = "TLS no válido";
                 tlsBadge.classList.add("status-invalid");
             } else {
-                tlsBadge.textContent = "TLS sin datos";
-                tlsBadge.classList.add("status-unknown");
+                tlsBadge.textContent = "TLS no comprobado";
+                tlsBadge.classList.add("status-unchecked");
             }
 
             domainInfo.appendChild(tlsBadge);
@@ -1889,3 +2201,121 @@ settingsCheckApi.addEventListener("click", async () => {
         settingsCheckApi.disabled = false;
     }
 });
+
+/* =========================================
+   WEBGUARD — ESTADÍSTICAS MONITORIZACIÓN
+========================================= */
+
+async function loadMonitoringStats() {
+    const domainsElement = document.getElementById("monitor-stat-domains");
+    const secureElement = document.getElementById("monitor-stat-secure");
+    const issuesElement = document.getElementById("monitor-stat-issues");
+    const recentElement = document.getElementById("monitor-stat-recent");
+
+    try {
+        const response = await fetch("/domains/status");
+
+        if (!response.ok) {
+            throw new Error("No se pudieron cargar las estadísticas");
+        }
+
+        const domains = await response.json();
+
+        if (!Array.isArray(domains)) {
+            throw new Error("Formato de dominios incorrecto");
+        }
+
+        const secure = domains.filter(
+            domain => domain.latest_analysis?.tls_valid === true
+        ).length;
+
+        const issues = domains.filter(
+            domain => domain.latest_analysis?.tls_valid === false
+        ).length;
+
+        const dates = domains
+            .map(domain => domain.latest_analysis?.analyzed_at)
+            .filter(Boolean)
+            .map(date => new Date(date))
+            .filter(date => !Number.isNaN(date.getTime()));
+
+        const latestDate = dates.length
+            ? new Date(Math.max(...dates.map(date => date.getTime())))
+            : null;
+
+        domainsElement.textContent = domains.length;
+        secureElement.textContent = secure;
+        issuesElement.textContent = issues;
+
+        const total = domains.length;
+
+        const securePercentage = total > 0
+            ? Math.round((secure / total) * 100)
+            : 0;
+
+        const issuesPercentage = total > 0
+            ? Math.round((issues / total) * 100)
+            : 0;
+
+        document.getElementById("monitor-secure-extra").textContent =
+            `${securePercentage}%`;
+
+        document.getElementById("monitor-issues-extra").textContent =
+            `${issuesPercentage}%`;
+
+        recentElement.textContent = latestDate
+            ? latestDate.toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit"
+            })
+            : "Sin análisis";
+
+    } catch (error) {
+        console.error("Error al cargar estadísticas:", error);
+
+        domainsElement.textContent = "—";
+        secureElement.textContent = "—";
+        issuesElement.textContent = "—";
+        recentElement.textContent = "—";
+    }
+}
+
+loadMonitoringStats();
+
+document.querySelector(
+    '.sidebar [data-section="monitoring"]'
+)?.addEventListener("click", loadMonitoringStats);
+
+/* =========================================
+   WEBGUARD — CONTROLES TABLA DOMINIOS
+========================================= */
+
+const monitorAddDomainToggle = document.getElementById(
+    "monitor-show-add-domain"
+);
+
+const monitorAddDomainPanel = document.getElementById(
+    "monitor-add-domain-panel"
+);
+
+monitorAddDomainToggle.addEventListener("click", () => {
+    const willOpen = monitorAddDomainPanel.hidden;
+
+    monitorAddDomainPanel.hidden = !willOpen;
+    monitorAddDomainToggle.setAttribute(
+        "aria-expanded",
+        String(willOpen)
+    );
+
+    if (willOpen) {
+        document.getElementById("new-domain").focus();
+    }
+});
+
+// =========================================
+// BUSCADOR DE DOMINIOS
+// =========================================
+
+document.getElementById("monitor-domain-filter")
+    .addEventListener("input", renderDomainsTable);

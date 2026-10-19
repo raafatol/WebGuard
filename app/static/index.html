@@ -434,47 +434,132 @@
                 </p>
             </div>
 
+            <!-- ESTADÍSTICAS DE CLIENTES -->
+            <div class="clients-stats">
+
+                <article class="clients-stat-card">
+                    <div class="clients-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <div class="clients-stat-content">
+                        <strong id="clients-stat-total">—</strong>
+                        <span>Clientes registrados</span>
+                    </div>
+                </article>
+
+                <article class="clients-stat-card">
+                    <div class="clients-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M3 12h18"/>
+                            <path d="M12 3a15 15 0 0 1 0 18"/>
+                            <path d="M12 3a15 15 0 0 0 0 18"/>
+                        </svg>
+                    </div>
+                    <div class="clients-stat-content">
+                        <strong id="clients-stat-domains">—</strong>
+                        <span>Dominios asociados</span>
+                    </div>
+                </article>
+
+                <article class="clients-stat-card">
+                    <div class="clients-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m12 3 10 18H2z"/>
+                            <path d="M12 9v4"/>
+                            <path d="M12 17h.01"/>
+                        </svg>
+                    </div>
+                    <div class="clients-stat-content">
+                        <strong id="clients-stat-issues">—</strong>
+                        <span>Problemas TLS confirmados</span>
+                    </div>
+                </article>
+
+            </div>
+
             <!-- FORMULARIO DE CREACIÓN -->
-            <section class="clients-panel">
-                <div class="clients-heading">
-                    <h2>Nuevo cliente</h2>
-                    <p>
-                        Registra una empresa o profesional
-                        para organizar sus dominios.
-                    </p>
+            <section class="clients-panel clients-create-panel">
+
+                <div class="clients-create-header">
+                    <div class="clients-heading">
+                        <h2>Nuevo cliente</h2>
+                        <p>
+                            Registra una empresa o profesional
+                            para organizar sus dominios.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="toggle-client-form-btn"
+                        class="clients-create-toggle"
+                        aria-expanded="false"
+                        aria-controls="client-form-container"
+                    >
+                        + Nuevo cliente
+                    </button>
                 </div>
 
-                <form id="client-form" class="client-form">
-                    <div class="client-field">
-                        <label for="client-name">Nombre del cliente</label>
-                        <input
-                            type="text"
-                            id="client-name"
-                            name="name"
-                            placeholder="Ej. Agencia Digital Málaga"
-                            autocomplete="organization"
-                            maxlength="120"
-                            required
-                        >
-                    </div>
+                <div id="client-form-container" hidden>
 
-                    <div class="client-field">
-                        <label for="client-email">Correo electrónico (opcional)</label>
-                        <input
-                            type="email"
-                            id="client-email"
-                            name="email"
-                            placeholder="contacto@agencia.com"
-                            autocomplete="email"
-                        >
-                    </div>
+                    <form id="client-form" class="client-form">
+                        <div class="client-field">
+                            <label for="client-name">Nombre del cliente</label>
+                            <input
+                                type="text"
+                                id="client-name"
+                                name="name"
+                                placeholder="Ej. Agencia Digital Málaga"
+                                autocomplete="organization"
+                                maxlength="120"
+                                required
+                            >
+                        </div>
 
-                    <button type="submit" id="create-client-btn">
-                        Crear cliente
-                    </button>
-                </form>
+                        <div class="client-field">
+                            <label for="client-email">
+                                Correo electrónico (opcional)
+                            </label>
+                            <input
+                                type="email"
+                                id="client-email"
+                                name="email"
+                                placeholder="contacto@agencia.com"
+                                autocomplete="email"
+                            >
+                        </div>
+
+                        <div class="clients-create-actions">
+                            <button type="submit" id="create-client-btn">
+                                Crear cliente
+                            </button>
+
+                            <button
+                                type="button"
+                                id="cancel-client-form-btn"
+                                class="clients-create-cancel"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
 
                 <p id="client-message" role="status" aria-live="polite"></p>
+
             </section>
 
             <!-- LISTADO DE CLIENTES -->
@@ -485,6 +570,24 @@
                         Consulta los clientes registrados
                         y sus dominios asociados.
                     </p>
+                </div>
+
+                <div class="clients-search">
+                    <svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-4-4"></path>
+                    </svg>
+
+                    <input
+                        type="search"
+                        id="clients-search-input"
+                        placeholder="Buscar cliente por nombre o correo..."
+                        aria-label="Buscar clientes"
+                        autocomplete="off"
+                    >
                 </div>
 
                 <div id="clients-list">
@@ -506,25 +609,134 @@
             hidden
         >
 
-            <div class="intro">
-                <h1>Monitorización de seguridad</h1>
-                <p>
-                    Analiza certificados TLS, cabeceras HTTP,
-                    consulta recomendaciones de seguridad
-                    y detecta cambios en tus sitios web.
-                </p>
+
+            <!-- =========================================
+                    MONITORIZACIÓN — INDICADORES SUPERIORES
+                ========================================= -->
+
+                <div class="monitor-overview">
+                    <div class="monitor-overview-heading">
+                        <div class="monitor-overview-title">
+                            <svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2 20 6v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/>
+                                <path d="M9 12h6M12 9v6"/>
+                            </svg>
+                            <div>
+                                <h2>Monitorización</h2>
+                                <p>Control y análisis de seguridad web</p>
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="monitor-stats">
+
+                    <article class="monitor-stat-card monitor-stat-domains">
+                        <div class="monitor-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M3 12h18"/>
+                                <path d="M12 3a15 15 0 0 1 0 18"/>
+                                <path d="M12 3a15 15 0 0 0 0 18"/>
+                            </svg>
+                        </div>
+                        <div class="monitor-stat-content">
+                            <strong id="monitor-stat-domains">—</strong>
+                            <span>Dominios monitorizados</span>
+                            <span class="monitor-stat-extra" id="monitor-domains-extra" title="Total de dominios registrados">
+                                Total
+                            </span>
+                        </div>
+                    </article>
+
+                    <article class="monitor-stat-card monitor-stat-secure">
+                        <div class="monitor-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2 20 6v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/>
+                                <path d="m9 12 2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div class="monitor-stat-content">
+                            <strong id="monitor-stat-secure">—</strong>
+                            <span>TLS válidos</span>
+                            <span class="monitor-stat-extra" id="monitor-secure-extra" title="Porcentaje de dominios con TLS válido">
+                                —
+                            </span>
+                        </div>
+                    </article>
+
+                    <article class="monitor-stat-card monitor-stat-issues">
+                        <div class="monitor-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m12 3 10 18H2z"/>
+                                <path d="M12 9v5"/>
+                                <path d="M12 17h.01"/>
+                            </svg>
+                        </div>
+                        <div class="monitor-stat-content">
+                            <strong id="monitor-stat-issues">—</strong>
+                            <span>TLS no válidos</span>
+                            <span class="monitor-stat-extra" id="monitor-issues-extra" title="Porcentaje de dominios con TLS no válido">
+                                —
+                            </span>
+                        </div>
+                    </article>
+
+                    <article class="monitor-stat-card monitor-stat-recent">
+                        <div class="monitor-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 7v5l3 2"/>
+                            </svg>
+                        </div>
+                        <div class="monitor-stat-content">
+                            <strong id="monitor-stat-recent">—</strong>
+                            <span>Último análisis</span>
+                            <span class="monitor-stat-extra" id="monitor-recent-extra" title="Fecha del último análisis registrado">
+                                Fecha
+                            </span>
+                        </div>
+                    </article>
+
+                </div>
             </div>
 
-            <!-- =================================
-                 ANALIZADOR
+           <!-- =================================
+                ANALIZADOR
             ================================= -->
 
-            <section class="search-panel">
-                <form id="analyze-form">
+            <div class="monitor-analysis-grid">
 
-                    <label for="domain">
-                        Dominio que quieres analizar
-                    </label>
+                <section class="search-panel">
+
+                    <div class="monitor-panel-heading">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="10.8" cy="10.8" r="7.3"/>
+                            <path d="m16.3 16.3 5 5"/>
+                        </svg>
+
+                        <div>
+                            <h2>Analizar dominio</h2>
+                            <p>
+                                Comprueba el certificado TLS, cabeceras de seguridad
+                                y recibe recomendaciones.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form id="analyze-form">
+
 
                     <div class="search-row">
                         <input
@@ -543,18 +755,69 @@
                         </button>
                     </div>
 
-                    <p class="hint">
-                        Introduce el dominio sin https://
+                    <p class="hint monitor-analysis-hint">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 11v6"/>
+                            <path d="M12 7h.01"/>
+                        </svg>
+
+                        <span>
+                            Introduce el dominio <span class="monitor-hint-highlight">sin https://</span>
+                        </span>
                     </p>
 
                 </form>
 
                 <p id="message" role="status"></p>
-            </section>
+                </section>
 
-            <!-- =================================
-                 RESULTADOS
-            ================================= -->
+                <!-- PANEL DE RESULTADOS SIN ANÁLISIS -->
+
+                <div id="monitor-results-placeholder" class="monitor-results-placeholder">
+                    <div class="monitor-placeholder-heading">
+
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2.5h8l5 5V21H6z"/>
+                            <path d="M14 2.5V8h5"/>
+                            <path d="M9 12h7"/>
+                            <path d="M9 16h7"/>
+                        </svg>
+
+                        <h2>Resultados del análisis</h2>
+
+                    </div>
+
+                    <p class="monitor-placeholder-description">
+                        Consulta los resultados y recomendaciones de seguridad.
+                    </p>
+
+                    <div class="monitor-placeholder-empty">
+                        <div class="monitor-placeholder-symbol">
+                            <svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round">
+                                <path d="M5 20v-5"/>
+                                <path d="M12 20V5"/>
+                                <path d="M19 20v-10"/>
+                            </svg>
+                        </div>
+
+                        <p>
+                            Realiza un análisis para ver aquí los resultados,
+                            el estado de seguridad y las recomendaciones.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- =================================
+                    RESULTADOS
+                ================================= -->
 
             <section
                 id="results"
@@ -602,58 +865,125 @@
                     <div id="recommendations-list"></div>
                 </article>
 
-            </section>
+             </section>
+
+        </div> <!-- Fin de monitor-analysis-grid -->
 
             <!-- =================================
                  DOMINIOS
             ================================= -->
 
-            <section class="domains-panel">
+            <section class="domains-panel monitor-domains-panel">
 
-                <h2>Mis dominios</h2>
+                <div class="monitor-domains-header">
 
-                <p class="domains-description">
-                    Gestiona los dominios que quieres monitorizar,
-                    consulta su estado y revisa sus análisis anteriores.
-                </p>
+                    <div class="monitor-domains-title">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M3 12h18"/>
+                            <path d="M12 3a15 15 0 0 1 0 18"/>
+                            <path d="M12 3a15 15 0 0 0 0 18"/>
+                        </svg>
 
-                <form
-                    id="domain-form"
-                    class="domain-form"
-                >
-                    <input
-                        type="text"
-                        id="new-domain"
-                        placeholder="Introduce un dominio (ej. example.com)"
-                        aria-label="Nuevo dominio"
-                        autocomplete="off"
-                        required
-                    >
+                        <div>
+                            <h2>Dominios monitorizados</h2>
+                            <p>
+                                Gestiona los dominios que quieres monitorizar
+                                y consulta su estado de seguridad.
+                            </p>
+                        </div>
+                    </div>
 
-                    <select
-                        id="domain-client"
-                        name="client_id"
-                        aria-label="Cliente al que pertenece el dominio"
-                    >
-                        <option value="">
-                            Sin cliente asignado
-                        </option>
-                    </select>
+                    <div class="monitor-domains-tools">
+                        <div class="monitor-domain-search">
+                            <svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <circle cx="10.8" cy="10.8" r="7.3"/>
+                                <path d="m16.3 16.3 5 5"/>
+                            </svg>
 
-                    <button
-                        type="submit"
-                        id="add-domain-btn"
-                    >
-                        Añadir dominio
-                    </button>
-                </form>
+                            <input
+                                type="search"
+                                id="monitor-domain-filter"
+                                placeholder="Buscar dominio..."
+                                aria-label="Buscar dominios monitorizados"
+                            >
+                        </div>
 
-                <p
-                    id="domain-message"
-                    role="status"
-                ></p>
+                        <button
+                            type="button"
+                            id="monitor-show-add-domain"
+                            class="monitor-add-domain-toggle"
+                            aria-expanded="false"
+                            aria-controls="monitor-add-domain-panel"
+                        >
+                            <span aria-hidden="true">＋</span>
+                            Añadir dominio
+                        </button>
+                    </div>
+                </div>
 
-                <div id="domains-list"></div>
+                <!-- Formulario desplegable para añadir dominios -->
+
+                <div id="monitor-add-domain-panel" hidden>
+                    <form id="domain-form" class="domain-form">
+
+                        <input
+                            type="text"
+                            id="new-domain"
+                            placeholder="Introduce un dominio (ej. example.com)"
+                            aria-label="Nuevo dominio"
+                            autocomplete="off"
+                            required
+                        >
+
+                        <select
+                            id="domain-client"
+                            name="client_id"
+                            aria-label="Cliente al que pertenece el dominio"
+                        >
+                            <option value="">Sin cliente asignado</option>
+                        </select>
+
+                        <button type="submit" id="add-domain-btn">
+                            Guardar dominio
+                        </button>
+
+                    </form>
+                </div>
+
+                <p id="domain-message" role="status"></p>
+
+                <!-- Tabla de dominios -->
+
+                <div class="monitor-domains-table-wrap">
+
+                    <table class="monitor-domains-table">
+
+                        <thead>
+                            <tr>
+                                <th scope="col">Dominio</th>
+                                <th scope="col">Cliente</th>
+                                <th scope="col">Estado TLS</th>
+                                <th scope="col">Último análisis</th>
+                                <th scope="col">Respuesta HTTP</th>
+                                <th scope="col">Cabeceras</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="domains-list">
+                            <!-- JavaScript insertará aquí las filas -->
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </section>
 
@@ -661,21 +991,33 @@
                  ALERTAS DE SEGURIDAD
             ================================= -->
 
+            <div class="monitor-bottom-grid">
             <section
                 class="alerts-panel"
                 aria-labelledby="alerts-title"
             >
 
                 <div class="alerts-heading">
-                    <div>
-                        <h2 id="alerts-title">
-                            Alertas de seguridad
-                        </h2>
+                    <div class="monitor-bottom-heading">
 
-                        <p class="alerts-description">
-                            Consulta los cambios detectados
-                            durante la monitorización de tus dominios.
-                        </p>
+                        <svg viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true">
+                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+                            <path d="M10 21h4"/>
+                        </svg>
+
+                        <div class="monitor-bottom-heading-text">
+                            <h2 id="alerts-title">Alertas de seguridad</h2>
+                            <p class="alerts-description">
+                                Cambios detectados durante la monitorización.
+                            </p>
+                        </div>
+
                     </div>
 
                     <button
@@ -702,6 +1044,36 @@
 
             </section>
 
+            <div id="monitor-history-placeholder" class="monitor-history-placeholder">
+                <div class="monitor-history-placeholder-heading">
+                    <svg viewBox="0 0 24 24" width="20" height="20"
+                        fill="none" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M12 7v5l3 2"></path>
+                    </svg>
+
+                    <div>
+                        <h2>Historial de seguridad</h2>
+                        <p>Consulta los análisis anteriores de tus dominios.</p>
+                    </div>
+                </div>
+
+                <div class="monitor-history-placeholder-content">
+                    <svg viewBox="0 0 24 24" width="32" height="32"
+                        fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+                        <path d="M3 4v5h5"></path>
+                        <path d="M12 7v5l3 2"></path>
+                    </svg>
+
+                    <p>Selecciona «Historial» en un dominio para consultar sus análisis anteriores.</p>
+                </div>
+            </div>
+
             <!-- =================================
                  HISTORIAL
             ================================= -->
@@ -713,9 +1085,25 @@
             >
 
                 <div class="history-heading">
-                    <div>
-                        <h2>Historial de seguridad</h2>
-                        <p id="history-domain"></p>
+                    <div class="monitor-bottom-heading">
+
+                        <svg viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true">
+                            <path d="M3 12a9 9 0 1 0 3-6.7"/>
+                            <path d="M3 4v5h5"/>
+                            <path d="M12 7v5l3 2"/>
+                        </svg>
+
+                        <div class="monitor-bottom-heading-text">
+                            <h2>Historial de seguridad</h2>
+                            <p id="history-domain"></p>
+                        </div>
+
                     </div>
 
                     <button
@@ -750,6 +1138,8 @@
                 </div>
 
             </section>
+
+            </div> <!-- Fin de monitor-bottom-grid -->
 
         </section>
 

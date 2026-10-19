@@ -39,10 +39,18 @@ def check_tls(domain):
                     "status": status
                 }
 
-    except (OSError, ssl.SSLError) as error:
+    except ssl.SSLCertVerificationError as error:
         return {
             "domain": domain,
             "valid": False,
             "status": "error",
+            "error": str(error)
+        }
+
+    except (OSError, ssl.SSLError) as error:
+        return {
+            "domain": domain,
+            "valid": None,
+            "status": "unchecked",
             "error": str(error)
         }
