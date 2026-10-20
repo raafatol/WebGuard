@@ -4923,3 +4923,1362 @@ button {
         width: 100%;
     }
 }
+
+/* =========================================
+   WEBGUARD — DASHBOARD REDESIGN V1
+   TARJETAS DE RESUMEN
+========================================= */
+
+#section-overview .dashboard-stats {
+    gap: 12px;
+    margin-top: 24px;
+}
+
+#section-overview .dashboard-stat-card {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    align-content: center;
+    column-gap: 14px;
+    row-gap: 5px;
+
+    min-height: 142px;
+    padding: 20px;
+
+    background: #19293b;
+    border: 1px solid #2b4058;
+    border-radius: 12px;
+}
+
+#section-overview .dashboard-stat-heading {
+    display: contents;
+}
+
+#section-overview .dashboard-stat-heading > span:first-child {
+    grid-column: 2;
+    grid-row: 2;
+
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+#section-overview .dashboard-stat-heading .dashboard-stat-icon {
+    grid-column: 1;
+    grid-row: 1 / 3;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 54px;
+    height: 54px;
+
+    background: rgba(59, 130, 246, 0.14);
+    border-radius: 50%;
+    color: #3b82f6;
+}
+
+#section-overview .dashboard-stat-heading .dashboard-stat-icon svg {
+    width: 27px;
+    height: 27px;
+}
+
+#section-overview .dashboard-stat-card > strong {
+    grid-column: 2;
+    grid-row: 1;
+
+    margin: 0;
+    font-size: 32px;
+    font-weight: 750;
+    line-height: 1;
+    color: #f8fafc;
+}
+
+#section-overview .dashboard-stat-card > p {
+    grid-column: 1 / -1;
+    grid-row: 3;
+
+    margin: 10px 0 0;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+#section-overview .dashboard-stat-card::after {
+    grid-column: 1 / -1;
+    grid-row: 4;
+
+    height: 5px;
+    min-height: 5px;
+    margin-top: 8px;
+}
+
+/* TLS válidos — turquesa */
+
+#section-overview .dashboard-stat-card:nth-child(2)
+.dashboard-stat-icon {
+    background: rgba(20, 184, 166, 0.14);
+    color: #14b8a6;
+}
+
+/* Problemas TLS — rojo */
+
+#section-overview .dashboard-stat-card:nth-child(3)
+.dashboard-stat-icon {
+    background: rgba(239, 68, 68, 0.14);
+    color: #ef4444;
+}
+
+/* Clientes — azul */
+
+#section-overview .dashboard-stat-card:nth-child(4)
+.dashboard-stat-icon {
+    background: rgba(59, 130, 246, 0.14);
+    color: #3b82f6;
+}
+
+/* Barras inferiores */
+
+#section-overview .dashboard-stat-card:nth-child(1)::after,
+#section-overview .dashboard-stat-card:nth-child(4)::after {
+    background: linear-gradient(90deg, #3b82f6, rgba(59,130,246,.12));
+}
+
+#section-overview .dashboard-stat-card:nth-child(2)::after {
+    background: linear-gradient(90deg, #14b8a6, rgba(20,184,166,.12));
+}
+
+#section-overview .dashboard-stat-card:nth-child(3)::after {
+    background: linear-gradient(90deg, #ef4444, rgba(239,68,68,.12));
+}
+
+@media (max-width: 650px) {
+    #section-overview .dashboard-stat-card {
+        min-height: 130px;
+        padding: 16px;
+    }
+}
+
+/* =========================================
+   WEBGUARD — DASHBOARD REDESIGN V2
+   ESTADO TLS Y RESUMEN RÁPIDO
+========================================= */
+
+/* Distribución de los dos paneles */
+
+#section-overview .dashboard-security-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 16px;
+    margin-top: 18px;
+}
+
+/* Diseño general */
+
+#section-overview .dashboard-security-panel {
+    min-width: 0;
+    padding: 22px;
+    background: #19293b;
+    border: 1px solid #2b4058;
+    border-radius: 12px;
+}
+
+/* Encabezados */
+
+#section-overview .dashboard-panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+#section-overview .dashboard-panel-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    font-size: 24px;
+}
+
+#section-overview .dashboard-panel-heading h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #f1f5f9;
+}
+
+#section-overview .dashboard-panel-heading p {
+    margin: 5px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #94a3b8;
+}
+
+/* =========================================
+   GRÁFICO CIRCULAR TLS
+========================================= */
+
+#section-overview .dashboard-tls-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 24px;
+}
+
+#section-overview .dashboard-donut {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+
+    width: 210px;
+    height: 210px;
+    border-radius: 50%;
+
+    background: #334155;
+}
+
+#section-overview .dashboard-donut::before {
+    content: "";
+    position: absolute;
+    inset: 31px;
+    background: #19293b;
+    border-radius: 50%;
+}
+
+#section-overview .dashboard-donut-center {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+#section-overview .dashboard-donut-center strong {
+    color: #f8fafc;
+    font-size: 38px;
+    line-height: 1;
+    font-weight: 750;
+}
+
+#section-overview .dashboard-donut-center span {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* Leyenda */
+
+#section-overview .dashboard-tls-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+#section-overview .dashboard-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 13px;
+    background: rgba(15, 23, 42, 0.22);
+    border: 1px solid #30455e;
+    border-radius: 8px;
+}
+
+#section-overview .dashboard-legend-dot {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+#section-overview .dashboard-legend-dot.is-valid {
+    background: #14b8a6;
+}
+
+#section-overview .dashboard-legend-dot.is-pending {
+    background: #f59e0b;
+}
+
+#section-overview .dashboard-legend-dot.is-unchecked {
+    background: #94a3b8;
+}
+
+#section-overview .dashboard-legend-dot.is-invalid {
+    background: #f43f5e;
+}
+
+#section-overview .dashboard-legend-item > span:nth-child(2) {
+    flex: 1;
+    color: #cbd5e1;
+    font-size: 12px;
+}
+
+#section-overview .dashboard-legend-item strong {
+    color: #f8fafc;
+    font-size: 14px;
+}
+
+/* =========================================
+   RESUMEN RÁPIDO
+========================================= */
+
+#section-overview .dashboard-quick-list {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+#section-overview .dashboard-quick-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    min-height: 45px;
+    padding: 12px 15px;
+
+    background: rgba(15, 23, 42, 0.22);
+    border: 1px solid #30455e;
+    border-radius: 8px;
+}
+
+#section-overview .dashboard-quick-item span {
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+#section-overview .dashboard-quick-item strong {
+    min-width: 35px;
+    padding: 6px 9px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 16px;
+    color: #f8fafc;
+    background: rgba(59, 130, 246, 0.12);
+}
+
+#section-overview .dashboard-quick-item:nth-child(1) strong {
+    color: #2dd4bf;
+    background: rgba(20, 184, 166, 0.13);
+}
+
+#section-overview .dashboard-quick-item:nth-child(2) strong {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.12);
+}
+
+#section-overview .dashboard-quick-item:nth-child(3) strong {
+    color: #cbd5e1;
+    background: rgba(148, 163, 184, 0.12);
+}
+
+#section-overview .dashboard-quick-item:nth-child(4) strong {
+    color: #fb7185;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1150px) {
+    #section-overview .dashboard-security-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    #section-overview .dashboard-security-panel {
+        padding: 17px;
+    }
+
+    #section-overview .dashboard-tls-content {
+        flex-direction: column;
+    }
+
+    #section-overview .dashboard-tls-legend {
+        width: 100%;
+    }
+
+    #section-overview .dashboard-donut {
+        width: 185px;
+        height: 185px;
+    }
+
+    #section-overview .dashboard-donut::before {
+        inset: 28px;
+    }
+}
+
+/* =========================================
+   DASHBOARD — ICONOS DE PANELES
+========================================= */
+
+#section-overview .dashboard-panel-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    color: #3b82f6;
+}
+
+#section-overview .dashboard-panel-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* =========================================
+   DASHBOARD — ICONOS RESUMEN RÁPIDO
+========================================= */
+
+#section-overview .dashboard-quick-label {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+#section-overview .dashboard-quick-label > span:last-child {
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+#section-overview .dashboard-quick-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+}
+
+#section-overview .dashboard-quick-icon svg {
+    width: 21px;
+    height: 21px;
+}
+
+#section-overview .dashboard-quick-icon.is-valid {
+    color: #14b8a6;
+    background: rgba(20, 184, 166, 0.14);
+}
+
+#section-overview .dashboard-quick-icon.is-pending {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.14);
+}
+
+#section-overview .dashboard-quick-icon.is-unchecked {
+    color: #94a3b8;
+    background: rgba(148, 163, 184, 0.14);
+}
+
+#section-overview .dashboard-quick-icon.is-invalid {
+    color: #fb7185;
+    background: rgba(239, 68, 68, 0.14);
+}
+
+/* =========================================
+   WEBGUARD — DASHBOARD
+   CLIENTES Y ACTIVIDAD RECIENTE
+========================================= */
+
+/* Distribución de los dos paneles */
+
+#section-overview .dashboard-details-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 16px;
+    margin-top: 18px;
+    align-items: stretch;
+}
+
+/* Diseño general de ambos paneles */
+
+#section-overview .dashboard-clients-panel,
+#section-overview .dashboard-recent-panel {
+    min-width: 0;
+    min-height: 260px;
+    padding: 22px;
+    background: #19293b;
+    border: 1px solid #2b4058;
+    border-radius: 12px;
+}
+
+/* Reutilizar los encabezados del Dashboard */
+
+#section-overview .dashboard-details-grid .dashboard-panel-heading {
+    margin-bottom: 20px;
+}
+
+/* Contenedores para los datos dinámicos */
+
+#dashboard-clients-table,
+#dashboard-recent-events {
+    width: 100%;
+    min-width: 0;
+}
+
+/* =========================================
+   TABLA DE CLIENTES
+========================================= */
+
+#section-overview .dashboard-clients-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+#section-overview .dashboard-clients-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 12px;
+}
+
+#section-overview .dashboard-clients-table th {
+    padding: 13px 10px;
+    color: #94a3b8;
+    font-weight: 600;
+    white-space: nowrap;
+    background: #142436;
+}
+
+#section-overview .dashboard-clients-table td {
+    padding: 15px 10px;
+    color: #cbd5e1;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+#section-overview .dashboard-clients-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#section-overview .dashboard-clients-table tbody tr:hover {
+    background: rgba(45, 212, 191, 0.04);
+}
+
+#section-overview .dashboard-clients-table td:first-child {
+    color: #f1f5f9;
+    font-weight: 600;
+}
+
+#section-overview .dashboard-clients-table th:not(:first-child),
+#section-overview .dashboard-clients-table td:not(:first-child) {
+    text-align: center;
+}
+
+/* =========================================
+   ACTIVIDAD RECIENTE
+========================================= */
+
+#section-overview .dashboard-recent-event {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+#section-overview .dashboard-recent-event:last-child {
+    border-bottom: none;
+}
+
+#section-overview .dashboard-recent-event-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+}
+
+#section-overview .dashboard-recent-event-icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+#section-overview .dashboard-recent-event-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    flex: 1;
+}
+
+#section-overview .dashboard-recent-event-content strong {
+    color: #f1f5f9;
+    font-size: 13px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+#section-overview .dashboard-recent-event-content p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+#section-overview .dashboard-recent-event-time {
+    color: #64748b;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1150px) {
+    #section-overview .dashboard-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    #section-overview .dashboard-clients-panel,
+    #section-overview .dashboard-recent-panel {
+        padding: 17px;
+    }
+
+    #section-overview .dashboard-clients-table {
+        min-width: 580px;
+    }
+
+    #section-overview .dashboard-recent-event-time {
+        white-space: normal;
+    }
+}
+
+/* =========================================
+   DASHBOARD — ALINEACIÓN DE COLUMNAS
+========================================= */
+
+#section-overview .dashboard-security-grid,
+#section-overview .dashboard-details-grid {
+    grid-template-columns: 1.15fr 1fr;
+    gap: 16px;
+}
+
+/* Mantener las mismas proporciones en pantallas pequeñas */
+
+@media (max-width: 1150px) {
+    #section-overview .dashboard-security-grid,
+    #section-overview .dashboard-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* DASHBOARD — TOTAL DE CLIENTES Y DOMINIOS */
+
+#section-overview .dashboard-clients-total {
+    background: rgba(20, 184, 166, 0.08);
+}
+
+#section-overview .dashboard-clients-total td {
+    color: #f1f5f9;
+    font-weight: 700;
+    border-top: 1px solid rgba(45, 212, 191, 0.3);
+}
+
+#section-overview .dashboard-clients-total td:first-child {
+    color: #2dd4bf;
+}
+
+/* =========================================
+   DASHBOARD — FILAS ALTERNAS
+========================================= */
+
+/* Clientes y dominios */
+
+#section-overview .dashboard-clients-table tbody tr:nth-child(odd):not(.dashboard-clients-total) {
+    background: #111a29;
+}
+
+#section-overview .dashboard-clients-table tbody tr:nth-child(even):not(.dashboard-clients-total) {
+    background: transparent;
+}
+
+/* Últimos análisis */
+
+#section-overview .dashboard-analysis-table tbody tr:nth-child(odd) {
+    background: #111a29;
+}
+
+#section-overview .dashboard-analysis-table tbody tr:nth-child(even) {
+    background: transparent;
+}
+
+/* Mantener un hover sutil */
+
+#section-overview .dashboard-clients-table tbody tr:not(.dashboard-clients-total):hover,
+#section-overview .dashboard-analysis-table tbody tr:hover {
+    background: #24364a;
+}
+
+/* La fila TOTAL conserva su diseño */
+
+#section-overview .dashboard-clients-table tbody tr.dashboard-clients-total {
+    background: rgba(20, 184, 166, 0.08);
+}
+
+/* =========================================
+   DASHBOARD — BOTÓN MONITORIZACIÓN
+========================================= */
+
+#section-overview .dashboard-activity-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+#section-overview .dashboard-monitoring-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    padding: 11px 16px;
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+#section-overview .dashboard-monitoring-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+#section-overview .dashboard-monitoring-btn svg {
+    width: 17px;
+    height: 17px;
+}
+
+/* =========================================
+   DASHBOARD — ACTIVIDAD RECIENTE TIMELINE
+========================================= */
+
+#section-overview #dashboard-recent-events {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 4px 4px;
+}
+
+#section-overview .dashboard-recent-event {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 0 0 24px;
+    border: none;
+    background: transparent;
+}
+
+#section-overview .dashboard-recent-event:last-child {
+    padding-bottom: 0;
+}
+
+/* Línea vertical que conecta los eventos */
+
+#section-overview .dashboard-recent-event:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 37px;
+    bottom: 2px;
+    width: 2px;
+    background: #34465b;
+}
+
+/* Icono circular */
+
+#section-overview .dashboard-recent-event-icon {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+    border-radius: 50%;
+    background: #2a394c;
+}
+
+#section-overview .dashboard-recent-event-icon.status-valid {
+    background: rgba(20, 184, 166, 0.14);
+}
+
+#section-overview .dashboard-recent-event-icon.status-invalid {
+    background: rgba(251, 113, 133, 0.14);
+}
+
+#section-overview .dashboard-recent-event-icon.status-unchecked {
+    background: rgba(148, 163, 184, 0.13);
+}
+
+#section-overview .dashboard-recent-event-icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+/* Contenido */
+
+#section-overview .dashboard-recent-event-content {
+    flex: 1;
+    min-width: 0;
+    padding-top: 2px;
+}
+
+#section-overview .dashboard-recent-event-content strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 650;
+    color: #f1f5f9;
+    overflow-wrap: anywhere;
+}
+
+#section-overview .dashboard-recent-event-content p {
+    margin: 5px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #94a3b8;
+}
+
+/* Fecha */
+
+#section-overview .dashboard-recent-event-time {
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-top: 4px;
+    font-size: 11px;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    #section-overview .dashboard-recent-event {
+        gap: 10px;
+    }
+
+    #section-overview .dashboard-recent-event-time {
+        font-size: 10px;
+    }
+}
+
+/* =========================================
+   WEBGUARD — UNIFICACIÓN VISUAL DASHBOARD
+========================================= */
+
+/* Todos los paneles principales con el mismo fondo */
+
+#section-overview .dashboard-stat-card,
+#section-overview .dashboard-tls-panel,
+#section-overview .dashboard-summary-panel,
+#section-overview .dashboard-clients-panel,
+#section-overview .dashboard-recent-panel,
+#section-overview .dashboard-activity {
+    background: #1b2535;
+}
+
+/* Separadores verticales en las dos tablas */
+
+#section-overview .dashboard-clients-table th,
+#section-overview .dashboard-clients-table td,
+#section-overview .dashboard-analysis-table th,
+#section-overview .dashboard-analysis-table td {
+    border-right: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+/* Sin borde sobrante en la última columna */
+
+#section-overview .dashboard-clients-table th:last-child,
+#section-overview .dashboard-clients-table td:last-child,
+#section-overview .dashboard-analysis-table th:last-child,
+#section-overview .dashboard-analysis-table td:last-child {
+    border-right: none;
+}
+
+/* =========================================
+   DASHBOARD — COLUMNAS CLIENTE Y HTTP
+========================================= */
+
+#section-overview .dashboard-client-cell {
+    color: #a8b8ca;
+    font-weight: 500;
+}
+
+#section-overview .dashboard-http-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+#section-overview .dashboard-http-badge.http-success {
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.13);
+}
+
+#section-overview .dashboard-http-badge.http-error {
+    color: #fb7185;
+    background: rgba(239, 68, 68, 0.13);
+}
+
+#section-overview .dashboard-http-badge.http-other {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.13);
+}
+
+#section-overview .dashboard-analysis-table {
+    min-width: 760px;
+}
+
+/* =========================================
+   DASHBOARD — ACABADO VISUAL UNIFICADO
+========================================= */
+
+/* Tarjetas de estadísticas */
+
+#section-overview .dashboard-stat-card {
+    background: #1b2535;
+}
+
+/* Paneles inferiores */
+
+#section-overview .dashboard-clients-panel,
+#section-overview .dashboard-recent-panel,
+#section-overview .dashboard-activity {
+    background: #1b2535;
+}
+
+/* Encabezado de Últimos análisis */
+
+#section-overview .dashboard-activity-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+#section-overview .dashboard-activity-title-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 36px;
+
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+}
+
+#section-overview .dashboard-activity-title-icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+#section-overview .dashboard-activity-title-group h2 {
+    margin: 0;
+    color: #f1f5f9;
+    font-size: 16px;
+    font-weight: 650;
+}
+
+#section-overview .dashboard-activity-title-group p {
+    margin: 5px 0 0;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* =========================================
+   WEBGUARD — FONDOS UNIFICADOS DEL DASHBOARD
+========================================= */
+
+#section-overview .dashboard-stat-card,
+#section-overview .dashboard-security-panel,
+#section-overview .dashboard-clients-panel,
+#section-overview .dashboard-recent-panel,
+#section-overview .dashboard-activity {
+    background: #1b2535;
+    background-image: none;
+}
+
+/* =========================================
+   DASHBOARD — TABLAS CON CONTORNO
+========================================= */
+
+#section-overview .dashboard-clients-table-wrapper,
+#section-overview .dashboard-table-wrapper {
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 9px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* Separación horizontal entre filas */
+
+#section-overview .dashboard-clients-table tbody td,
+#section-overview .dashboard-analysis-table tbody td {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.13);
+}
+
+/* Evitar una línea doble en la parte inferior */
+
+#section-overview .dashboard-clients-table tbody tr:last-child td,
+#section-overview .dashboard-analysis-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Mantener el encabezado bien delimitado */
+
+#section-overview .dashboard-clients-table thead th,
+#section-overview .dashboard-analysis-table thead th {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+/* =========================================
+   DASHBOARD — ACTIVIDAD RECIENTE PREMIUM
+========================================= */
+
+#section-overview #dashboard-recent-events {
+    padding: 12px 0 0;
+    gap: 8px;
+}
+
+/* Cada evento tiene su propia superficie */
+
+#section-overview .dashboard-recent-event {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    min-height: 65px;
+    padding: 11px 13px;
+
+    background: rgba(15, 23, 42, 0.35);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 9px;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+#section-overview .dashboard-recent-event:hover {
+    background: rgba(30, 41, 59, 0.75);
+    border-color: rgba(59, 130, 246, 0.28);
+}
+
+/* Desactivar la línea entre tarjetas independientes */
+
+#section-overview .dashboard-recent-event:not(:last-child)::before {
+    display: none;
+}
+
+/* Iconos algo más grandes */
+
+#section-overview .dashboard-recent-event-icon {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+}
+
+#section-overview .dashboard-recent-event-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Dominio */
+
+#section-overview .dashboard-recent-event-content strong {
+    font-size: 13px;
+    font-weight: 650;
+}
+
+/* Descripción */
+
+#section-overview .dashboard-recent-event-content p {
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+/* Fecha */
+
+#section-overview .dashboard-recent-event-time {
+    padding: 5px 8px;
+    margin-left: auto;
+
+    border-radius: 6px;
+    background: rgba(148, 163, 184, 0.09);
+
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+/* =========================================
+   DASHBOARD — ACTIVIDAD RECIENTE LIMPIA
+========================================= */
+
+/* Eliminar la línea vertical de la antigua cronología */
+#section-overview #dashboard-recent-events::before,
+#section-overview #dashboard-recent-events::after,
+#section-overview .dashboard-recent-event::before,
+#section-overview .dashboard-recent-event::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* Eliminar separadores antiguos entre eventos */
+#section-overview .dashboard-recent-event {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    margin-bottom: 0;
+}
+
+/* Evitar estilos especiales sobre el último evento */
+#section-overview .dashboard-recent-event:last-child {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    padding-bottom: 11px;
+}
+
+/* Espaciado uniforme entre todas las tarjetas */
+#section-overview #dashboard-recent-events {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+/* =========================================
+   MONITORIZACIÓN — CERRAR RESULTADOS
+========================================= */
+
+#section-monitoring .monitor-results-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+#section-monitoring .monitor-results-heading h2 {
+    margin: 0;
+}
+
+#section-monitoring .monitor-close-results {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    padding: 9px 13px;
+    border: 1px solid #34475e;
+    border-radius: 8px;
+
+    background: #26364a;
+    color: #cbd5e1;
+
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#section-monitoring .monitor-close-results:hover {
+    background: #34475e;
+    border-color: #64748b;
+    color: #ffffff;
+}
+
+#section-monitoring .monitor-close-results svg {
+    width: 15px;
+    height: 15px;
+}
+
+@media (max-width: 600px) {
+    #section-monitoring .monitor-results-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+/* =========================================
+   MONITORIZACIÓN — ALERTAS E HISTORIAL
+========================================= */
+
+/* Dos columnas con paneles alineados */
+#section-monitoring .monitor-bottom-grid {
+    align-items: stretch !important;
+}
+
+/* Paneles con el mismo tamaño exterior */
+#section-monitoring .monitor-bottom-grid > .alerts-panel,
+#section-monitoring .monitor-bottom-grid > .history-panel,
+#section-monitoring .monitor-bottom-grid > .monitor-history-placeholder {
+    align-self: stretch;
+    min-height: 260px;
+    height: 340px;
+    max-height: 340px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Organizar el contenido verticalmente */
+#section-monitoring .alerts-panel,
+#section-monitoring .history-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Los encabezados no se comprimen */
+#section-monitoring .alerts-heading,
+#section-monitoring .history-heading {
+    flex-shrink: 0;
+}
+
+/* Historial con desplazamiento interno */
+#section-monitoring .history-table-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #40566e transparent;
+}
+
+/* Alertas con desplazamiento interno */
+#section-monitoring #alerts-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #40566e transparent;
+}
+
+/* Encabezados de tabla siempre visibles */
+#section-monitoring .history-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#section-monitoring .history-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #24354a;
+}
+
+/* Estado sin alertas */
+#section-monitoring .alerts-panel:has(#alerts-list:empty) #alerts-message {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 0;
+    color: #94a3b8;
+}
+
+/* Respetar los paneles ocultos */
+#section-monitoring .monitor-bottom-grid > [hidden] {
+    display: none !important;
+}
+
+/* Adaptación a pantallas pequeñas */
+@media (max-width: 1050px) {
+    #section-monitoring .monitor-bottom-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #section-monitoring .monitor-bottom-grid > .alerts-panel,
+    #section-monitoring .monitor-bottom-grid > .history-panel,
+    #section-monitoring .monitor-bottom-grid > .monitor-history-placeholder {
+        height: auto;
+        max-height: none;
+        min-height: 180px;
+    }
+
+    #section-monitoring .history-table-wrapper,
+    #section-monitoring #alerts-list {
+        max-height: 300px;
+    }
+}
+
+/* =========================================
+   HISTORIAL — APROVECHAR ALTURA DISPONIBLE
+========================================= */
+
+/* Reducir separación bajo el título */
+#section-monitoring .history-heading {
+    margin-bottom: 6px;
+}
+
+/* Subir el contador de análisis */
+#section-monitoring #history-message {
+    margin: 0 0 8px;
+    line-height: 1.3;
+    flex-shrink: 0;
+}
+
+/* Dar el espacio disponible a la tabla */
+#section-monitoring .history-table-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* Filas un poco más compactas */
+#section-monitoring .history-table th,
+#section-monitoring .history-table td {
+    padding: 9px 12px;
+}
+
+/* =========================================
+   WEBGUARD — BOTÓN CERRAR RESULTADOS
+========================================= */
+
+#section-monitoring #close-analysis-results {
+    background-color: #2563eb !important;
+    border: 1px solid #2563eb !important;
+    color: #ffffff !important;
+}
+
+#section-monitoring #close-analysis-results:hover {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+}

@@ -395,16 +395,278 @@
             </div>
 
             <!-- =====================================
+                ESTADO GENERAL DE SEGURIDAD
+            ===================================== -->
+
+            <div class="dashboard-security-grid">
+
+                <!-- DISTRIBUCIÓN TLS -->
+                <section class="dashboard-security-panel">
+
+                    <div class="dashboard-panel-heading">
+                        <div class="dashboard-panel-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <path d="m9 12 2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2>Estado de seguridad TLS</h2>
+                            <p>Distribución de los certificados de los dominios monitorizados.</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-tls-content">
+
+                        <div class="dashboard-donut"
+                            id="dashboard-tls-donut"
+                            role="img"
+                            aria-label="Distribución del estado TLS">
+
+                            <div class="dashboard-donut-center">
+                                <strong id="dashboard-tls-total">—</strong>
+                                <span>Dominios</span>
+                            </div>
+
+                        </div>
+
+                        <div class="dashboard-tls-legend">
+
+                            <div class="dashboard-legend-item">
+                                <span class="dashboard-legend-dot is-valid"></span>
+                                <span>TLS válidos</span>
+                                <strong id="dashboard-tls-valid">—</strong>
+                            </div>
+
+                            <div class="dashboard-legend-item">
+                                <span class="dashboard-legend-dot is-pending"></span>
+                                <span>Pendientes</span>
+                                <strong id="dashboard-tls-pending">—</strong>
+                            </div>
+
+                            <div class="dashboard-legend-item">
+                                <span class="dashboard-legend-dot is-unchecked"></span>
+                                <span>Sin comprobar</span>
+                                <strong id="dashboard-tls-unchecked">—</strong>
+                            </div>
+
+                            <div class="dashboard-legend-item">
+                                <span class="dashboard-legend-dot is-invalid"></span>
+                                <span>TLS inválidos</span>
+                                <strong id="dashboard-tls-invalid">—</strong>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- RESUMEN RÁPIDO -->
+                <section class="dashboard-security-panel">
+
+                    <div class="dashboard-panel-heading">
+                        <div class="dashboard-panel-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M5 20v-7"/>
+                                <path d="M12 20V4"/>
+                                <path d="M19 20v-11"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2>Resumen rápido</h2>
+                            <p>Información clave sobre el estado actual.</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-quick-list">
+
+                        <div class="dashboard-quick-item">
+                            <div class="dashboard-quick-label">
+                                <span class="dashboard-quick-icon is-valid" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="1.8"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                        <path d="m9 12 2 2 4-4"/>
+                                    </svg>
+                                </span>
+                                <span>Dominios con TLS válido</span>
+                            </div>
+                            <strong id="dashboard-quick-valid">—</strong>
+                        </div>
+
+                        <div class="dashboard-quick-item">
+                            <div class="dashboard-quick-label">
+                                <span class="dashboard-quick-icon is-pending" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="1.8"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="9"/>
+                                        <path d="M12 7v5l3 2"/>
+                                    </svg>
+                                </span>
+                                <span>Dominios pendientes de análisis</span>
+                            </div>
+                            <strong id="dashboard-quick-pending">—</strong>
+                        </div>
+
+                        <div class="dashboard-quick-item">
+                            <div class="dashboard-quick-label">
+                                <span class="dashboard-quick-icon is-unchecked" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="1.8"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="9"/>
+                                        <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4"/>
+                                        <path d="M12 17h.01"/>
+                                    </svg>
+                                </span>
+                                <span>Dominios sin comprobación TLS</span>
+                            </div>
+                            <strong id="dashboard-quick-unchecked">—</strong>
+                        </div>
+
+                        <div class="dashboard-quick-item">
+                            <div class="dashboard-quick-label">
+                                <span class="dashboard-quick-icon is-invalid" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="1.8"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m10.3 3.9-8.1 14A2 2 0 0 0 3.9 21h16.2a2 2 0 0 0 1.7-3.1l-8.1-14a2 2 0 0 0-3.4 0z"/>
+                                        <path d="M12 9v4"/>
+                                        <path d="M12 17h.01"/>
+                                    </svg>
+                                </span>
+                                <span>Problemas TLS confirmados</span>
+                            </div>
+                            <strong id="dashboard-quick-invalid">—</strong>
+                        </div>
+
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- =====================================
+                CLIENTES Y DOMINIOS — DASHBOARD
+            ===================================== -->
+
+            <div class="dashboard-details-grid">
+
+                <section class="dashboard-clients-panel">
+
+                    <div class="dashboard-panel-heading">
+                        <div class="dashboard-panel-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+
+                        <div>
+                            <h2>Clientes y dominios</h2>
+                            <p>Resumen de la distribución de seguridad por cliente.</p>
+                        </div>
+                    </div>
+
+                    <div id="dashboard-clients-table">
+                        <p class="dashboard-empty">
+                            Cargando información de clientes...
+                        </p>
+                    </div>
+
+                </section>
+
+                <section class="dashboard-recent-panel">
+
+                    <div class="dashboard-panel-heading">
+                        <div class="dashboard-panel-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 7v5l3 2"/>
+                            </svg>
+                        </div>
+
+                        <div>
+                            <h2>Actividad reciente</h2>
+                            <p>Últimos análisis registrados en WebGuard.</p>
+                        </div>
+                    </div>
+
+                    <div id="dashboard-recent-events">
+                        <p class="dashboard-empty">
+                            Cargando actividad reciente...
+                        </p>
+                    </div>
+
+                </section>
+
+            </div>
+
+            <!-- =====================================
                 ACTIVIDAD RECIENTE
             ===================================== -->
 
             <section class="dashboard-activity">
 
                 <div class="dashboard-activity-heading">
-                    <div>
-                        <h2>Últimos análisis</h2>
-                        <p>Resultados recientes de los dominios monitorizados</p>
+
+                    <div class="dashboard-activity-title-group">
+
+                        <span class="dashboard-activity-title-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <path d="M14 2v6h6"/>
+                                <path d="M8 13h8"/>
+                                <path d="M8 17h8"/>
+                            </svg>
+                        </span>
+
+                        <div>
+                            <h2>Últimos análisis</h2>
+                            <p>Consulta los últimos resultados de seguridad de tus dominios monitorizados.</p>
+                        </div>
+
                     </div>
+
+                    <button
+                        type="button"
+                        id="dashboard-go-monitoring"
+                        class="dashboard-monitoring-btn"
+                    >
+                        Ir a monitorización
+
+                        <svg viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true">
+                            <path d="M7 17 17 7"/>
+                            <path d="M8 7h9v9"/>
+                        </svg>
+                    </button>
                 </div>
 
                 <div id="dashboard-activity-list">
@@ -824,10 +1086,28 @@
                 class="results"
                 hidden
             >
-                <h2>
-                    Resultados de seguridad:
-                    <span id="result-domain"></span>
-                </h2>
+                <div class="monitor-results-heading">
+                    <h2>
+                        Resultados de seguridad:
+                        <span id="result-domain"></span>
+                    </h2>
+
+                    <button
+                        type="button"
+                        id="close-analysis-results"
+                        class="monitor-close-results"
+                        aria-label="Cerrar resultados del análisis"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <path d="M18 6 6 18"/>
+                            <path d="m6 6 12 12"/>
+                        </svg>
+                        Cerrar resultados
+                    </button>
+                </div>
 
                 <div class="cards">
 

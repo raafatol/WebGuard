@@ -178,6 +178,19 @@ const monitorAnalysisGrid = document.querySelector(
     "#section-monitoring .monitor-analysis-grid"
 );
 
+const closeAnalysisResultsBtn = document.getElementById(
+    "close-analysis-results"
+);
+
+closeAnalysisResultsBtn.addEventListener("click", () => {
+    results.hidden = true;
+    monitorResultsPlaceholder.hidden = false;
+    monitorAnalysisGrid.classList.remove("has-results");
+
+    domainInput.value = "";
+    setStatus(message, "");
+});
+
 analyzeForm.addEventListener("submit", async event => {
     event.preventDefault();
 
@@ -904,6 +917,20 @@ function navigateTo(section) {
         }
     });
 }
+
+// Dashboard: acceso directo a Monitorización
+document.getElementById("dashboard-go-monitoring")
+    .addEventListener("click", () => {
+        navigateTo("monitoring");
+
+        loadDomains();
+        loadMonitoringStats();
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    });
 
 // Registrar los eventos de navegación.
 navigationButtons.forEach(button => {
@@ -1833,10 +1860,367 @@ async function loadDashboard() {
             domain.latest_analysis?.tls_valid === true
         ).length;
 
+        // =========================================
+        // DISTRIBUCIÓN REAL DE ESTADOS TLS
+        // =========================================
+
+        const tlsStats = {
+            valid: 0,
+            pending: 0,
+            unchecked: 0,
+            invalid: 0
+        };
+
+        domains.forEach(domain => {
+            const analysis = domain.latest_analysis;
+
+            if (!analysis) {
+                tlsStats.pending++;
+            } else if (analysis.tls_valid === true) {
+                tlsStats.valid++;
+            } else if (analysis.tls_valid === false) {
+                tlsStats.invalid++;
+            } else {
+                tlsStats.unchecked++;
+            }
+        });
+
+        // Actualizar total del gráfico
+        document.getElementById("dashboard-tls-total").textContent =
+            domains.length;
+
+        // Actualizar leyenda
+        document.getElementById("dashboard-tls-valid").textContent =
+            tlsStats.valid;
+
+        document.getElementById("dashboard-tls-pending").textContent =
+            tlsStats.pending;
+
+        document.getElementById("dashboard-tls-unchecked").textContent =
+            tlsStats.unchecked;
+
+        document.getElementById("dashboard-tls-invalid").textContent =
+            tlsStats.invalid;
+
+        // Actualizar resumen rápido
+        document.getElementById("dashboard-quick-valid").textContent =
+            tlsStats.valid;
+
+        document.getElementById("dashboard-quick-pending").textContent =
+            tlsStats.pending;
+
+        document.getElementById("dashboard-quick-unchecked").textContent =
+            tlsStats.unchecked;
+
+        document.getElementById("dashboard-quick-invalid").textContent =
+            tlsStats.invalid;
+
+        // =========================================
+        // DIBUJAR GRÁFICO CIRCULAR
+        // =========================================
+
+        const donut = document.getElementById("dashboard-tls-donut");
+
+        const total = domains.length;
+
+        if (total === 0) {
+            donut.style.background = "#334155";
+        } else {
+            const colors = [
+                ["#14b8a6", tlsStats.valid],
+                ["#f59e0b", tlsStats.pending],
+                ["#94a3b8", tlsStats.unchecked],
+                ["#f43f5e", tlsStats.invalid]
+            ];
+
+            let currentPercentage = 0;
+
+            const segments = colors
+                .filter(([, count]) => count > 0)
+                .map(([color, count]) => {
+                    const start = currentPercentage;
+                    currentPercentage += (count / total) * 100;
+
+                    return `${color} ${start}% ${currentPercentage}%`;
+                });
+
+            donut.style.background =
+                `conic-gradient(${segments.join(", ")})`;
+        }
+
+        // Texto accesible con la distribución real
+        donut.setAttribute(
+            "aria-label",
+            `${total} dominios: ` +
+            `${tlsStats.valid} válidos, ` +
+            `${tlsStats.pending} pendientes, ` +
+            `${tlsStats.unchecked} sin comprobar y ` +
+            `${tlsStats.invalid} inválidos`
+        );
+
         statDomains.textContent = domains.length;
         statSecure.textContent = validTLS;
         statAlerts.textContent = alerts.length;
         statClients.textContent = clients.length;
+
+        // =========================================
+        // DASHBOARD — CLIENTES Y DOMINIOS
+        // =========================================
+
+        const clientsTableContainer = document.getElementById(
+            "dashboard-clients-table"
+        );
+
+        clientsTableContainer.replaceChildren();
+
+        // Clasificar el estado TLS de cada dominio.
+        function getDashboardTLSStatus(domain) {
+            const analysis = domain.latest_analysis;
+
+            if (!analysis) return "pending";
+            if (analysis.tls_valid === true) return "valid";
+            if (analysis.tls_valid === false) return "invalid";
+
+            return "unchecked";
+        }
+
+        // Construir las filas por cliente.
+        const clientRows = clients.map(client => {
+            const clientDomains = domains.filter(domain =>
+                String(domain.client_id) === String(client.id)
+            );
+
+            return {
+                name: client.name,
+                domains: clientDomains.length,
+                valid: clientDomains.filter(domain =>
+                    getDashboardTLSStatus(domain) === "valid"
+                ).length,
+                pending: clientDomains.filter(domain =>
+                    getDashboardTLSStatus(domain) === "pending"
+                ).length,
+                unchecked: clientDomains.filter(domain =>
+                    getDashboardTLSStatus(domain) === "unchecked"
+                ).length,
+                invalid: clientDomains.filter(domain =>
+                    getDashboardTLSStatus(domain) === "invalid"
+                ).length
+            };
+        });
+
+        // Incluir dominios sin cliente asignado.
+        const unassignedDomains = domains.filter(domain =>
+            domain.client_id === null ||
+            domain.client_id === undefined ||
+            domain.client_id === ""
+        );
+
+        if (unassignedDomains.length > 0) {
+            clientRows.push({
+                name: "Sin cliente asignado",
+                domains: unassignedDomains.length,
+                valid: unassignedDomains.filter(domain =>
+                    getDashboardTLSStatus(domain) === "valid"
+                ).length,
+                pending: unassignedDomains.filter(domain =>
+                    getDashboardTLSStatus(domain) === "pending"
+                ).length,
+                unchecked: unassignedDomains.filter(domain =>
+                    getDashboardTLSStatus(domain) === "unchecked"
+                ).length,
+                invalid: unassignedDomains.filter(domain =>
+                    getDashboardTLSStatus(domain) === "invalid"
+                ).length
+            });
+        }
+
+        // Crear tabla.
+        const clientsTableWrapper = document.createElement("div");
+        clientsTableWrapper.className = "dashboard-clients-table-wrapper";
+
+        const clientsTable = document.createElement("table");
+        clientsTable.className = "dashboard-clients-table";
+
+        const clientsThead = document.createElement("thead");
+        const clientsHeaderRow = document.createElement("tr");
+
+        [
+            "Cliente",
+            "Dominios",
+            "Válidos",
+            "Pendientes",
+            "Sin comprobar",
+            "Inválidos"
+        ].forEach(label => {
+            const th = document.createElement("th");
+            th.textContent = label;
+            clientsHeaderRow.appendChild(th);
+        });
+
+        clientsThead.appendChild(clientsHeaderRow);
+
+        const clientsTbody = document.createElement("tbody");
+
+        // Función para añadir filas sin usar innerHTML.
+        function addDashboardClientRow(data, isTotal = false) {
+            const row = document.createElement("tr");
+
+            if (isTotal) {
+                row.classList.add("dashboard-clients-total");
+            }
+
+            [
+                data.name,
+                data.domains,
+                data.valid,
+                data.pending,
+                data.unchecked,
+                data.invalid
+            ].forEach(value => {
+                const td = document.createElement("td");
+                td.textContent = value;
+                row.appendChild(td);
+            });
+
+            clientsTbody.appendChild(row);
+        }
+
+        // Ordenar clientes por número de dominios.
+        clientRows.sort((a, b) =>
+            b.domains - a.domains || a.name.localeCompare(b.name, "es")
+        );
+
+        clientRows.forEach(row => addDashboardClientRow(row));
+
+        // Fila de totales.
+        addDashboardClientRow({
+            name: "TOTAL",
+            domains: domains.length,
+            valid: tlsStats.valid,
+            pending: tlsStats.pending,
+            unchecked: tlsStats.unchecked,
+            invalid: tlsStats.invalid
+        }, true);
+
+        clientsTable.append(clientsThead, clientsTbody);
+        clientsTableWrapper.appendChild(clientsTable);
+        clientsTableContainer.appendChild(clientsTableWrapper);
+
+        // =========================================
+        // DASHBOARD — PANEL DE ACTIVIDAD RECIENTE
+        // =========================================
+
+        const recentEventsContainer = document.getElementById(
+            "dashboard-recent-events"
+        );
+
+        recentEventsContainer.replaceChildren();
+
+        // Solo mostrar dominios que tengan un análisis real.
+        const recentAnalyses = domains
+            .filter(domain => domain.latest_analysis?.analyzed_at)
+            .sort((a, b) =>
+                new Date(b.latest_analysis.analyzed_at) -
+                new Date(a.latest_analysis.analyzed_at)
+            )
+            .slice(0, 4);
+
+        if (recentAnalyses.length === 0) {
+
+            const empty = document.createElement("p");
+            empty.className = "dashboard-empty";
+            empty.textContent = "Todavía no hay análisis registrados.";
+
+            recentEventsContainer.appendChild(empty);
+
+        } else {
+
+            recentAnalyses.forEach(domain => {
+
+                const analysis = domain.latest_analysis;
+
+                const event = document.createElement("div");
+                event.className = "dashboard-recent-event";
+
+                const icon = document.createElement("div");
+                icon.className = "dashboard-recent-event-icon";
+
+                const status = getDashboardTLSStatus(domain);
+
+                const colors = {
+                    valid: "#14b8a6",
+                    invalid: "#fb7185",
+                    unchecked: "#94a3b8",
+                    pending: "#3b82f6"
+                };
+
+                icon.classList.add(`status-${status}`);
+                icon.style.color = colors[status];
+
+                const iconPaths = {
+                    valid: `
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    `,
+                    invalid: `
+                        <path d="m10.3 3.9-8.1 14A2 2 0 0 0 3.9 21h16.2a2 2 0 0 0 1.7-3.1l-8.1-14a2 2 0 0 0-3.4 0z"/>
+                        <path d="M12 9v4"/>
+                        <path d="M12 17h.01"/>
+                    `,
+                    unchecked: `
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M9.5 10a2.5 2.5 0 1 1 4.3 1.7c-.9.8-1.8 1.2-1.8 2.3"/>
+                        <path d="M12 17h.01"/>
+                    `,
+                    pending: `
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v5l3 2"/>
+                    `
+                };
+
+                icon.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        ${iconPaths[status] || iconPaths.unchecked}
+                    </svg>
+                `;
+
+                const content = document.createElement("div");
+                content.className = "dashboard-recent-event-content";
+
+                const name = document.createElement("strong");
+                name.textContent = domain.domain;
+
+                const description = document.createElement("p");
+
+                if (status === "valid") {
+                    description.textContent = "Análisis completado · TLS válido";
+                } else if (status === "invalid") {
+                    description.textContent = "Análisis completado · TLS inválido";
+                } else {
+                    description.textContent = "Análisis realizado · TLS no comprobado";
+                }
+
+                content.append(name, description);
+
+                const time = document.createElement("span");
+                time.className = "dashboard-recent-event-time";
+
+                const date = new Date(analysis.analyzed_at);
+
+                time.textContent = Number.isNaN(date.getTime())
+                    ? analysis.analyzed_at
+                    : date.toLocaleDateString("es-ES", {
+                        day: "2-digit",
+                        month: "short"
+                    });
+
+                event.append(icon, content, time);
+                recentEventsContainer.appendChild(event);
+            });
+        }
 
         // =========================================
         // ACTIVIDAD RECIENTE DEL DASHBOARD
@@ -1878,7 +2262,14 @@ async function loadDashboard() {
             const thead = document.createElement("thead");
             const headerRow = document.createElement("tr");
 
-            ["Dominio", "Estado", "TLS", "Cabeceras", "Fecha"].forEach(label => {
+            [
+                "Dominio",
+                "Cliente",
+                "Estado TLS",
+                "Último análisis",
+                "Respuesta HTTP",
+                "Cabeceras"
+            ].forEach(label => {
                 const th = document.createElement("th");
                 th.textContent = label;
                 headerRow.appendChild(th);
@@ -1897,6 +2288,11 @@ async function loadDashboard() {
                 const domainCell = document.createElement("td");
                 domainCell.className = "dashboard-domain-cell";
                 domainCell.textContent = domain.domain;
+
+                // Cliente asociado al dominio
+                const clientCell = document.createElement("td");
+                clientCell.className = "dashboard-client-cell";
+                clientCell.textContent = domain.client_name || "Sin cliente";
 
                 // Estado conocido
                 const statusCell = document.createElement("td");
@@ -1919,17 +2315,29 @@ async function loadDashboard() {
 
                 statusCell.appendChild(statusBadge);
 
-                // TLS
-                const tlsCell = document.createElement("td");
+                // Respuesta HTTP
+                const httpCell = document.createElement("td");
+                httpCell.className = "dashboard-http-cell";
 
-                if (analysis?.tls_valid === true) {
-                    tlsCell.textContent = "✓";
-                    tlsCell.className = "dashboard-tls-valid";
-                } else if (analysis?.tls_valid === false) {
-                    tlsCell.textContent = "✕";
-                    tlsCell.className = "dashboard-tls-invalid";
+                if (Number.isInteger(analysis?.http_status)) {
+                    const httpBadge = document.createElement("span");
+                    httpBadge.className = "dashboard-http-badge";
+
+                    const code = analysis.http_status;
+                    httpBadge.textContent = code;
+
+                    if (code >= 200 && code < 300) {
+                        httpBadge.classList.add("http-success");
+                    } else if (code >= 400) {
+                        httpBadge.classList.add("http-error");
+                    } else {
+                        httpBadge.classList.add("http-other");
+                    }
+
+                    httpCell.appendChild(httpBadge);
                 } else {
-                    tlsCell.textContent = "—";
+                    httpCell.textContent = "Sin datos";
+                    httpCell.classList.add("dashboard-muted-cell");
                 }
 
                 // =========================================
@@ -1989,15 +2397,16 @@ async function loadDashboard() {
                             timeStyle: "short"
                         });
                 } else {
-                    dateCell.textContent = "Sin analizar";
+                    dateCell.textContent = "Nunca";
                 }
 
                 row.append(
                     domainCell,
+                    clientCell,
                     statusCell,
-                    tlsCell,
-                    headersCell,
-                    dateCell
+                    dateCell,
+                    httpCell,
+                    headersCell
                 );
 
                 tbody.appendChild(row);
