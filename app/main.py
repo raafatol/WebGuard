@@ -1,14 +1,16 @@
 
 from pathlib import Path
 from contextlib import asynccontextmanager
+from io import BytesIO
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.services.security_analyzer import analyze_website
 from app.services.domain_validator import validate_domain
+from app.services.report_generator import generate_client_report
 
 from app.database.db import init_db
 from app.database.domain_repository import (
@@ -331,3 +333,32 @@ def list_client_domains(client_id: int):
         )
 
     return get_domains_by_client(client_id)
+
+# =========================================
+# INFORMES PDF
+# =========================================
+
+@app.get("/reports/clients/{client_id}/pdf")
+def download_client_report(client_id: int):
+    """
+    Genera y descarga un informe PDF con los últimos
+    análisis de los dominios asociados a un cliente.
+    """
+
+    try:
+        pdf_bytes = generate_client_report(client_id)
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error)
+        )
+
+    return StreamingResponse(
+        BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition":
+                f'attachment; filename="webguard-informe-cliente-{client_id}.pdf"'
+        }
+    )
