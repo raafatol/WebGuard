@@ -198,5 +198,88 @@ def init_db():
         if "redirect_json" not in analysis_columns:
             connection.execute("ALTER TABLE analyses ADD COLUMN redirect_json TEXT")
 
+        # ==========================================
+        # AUTENTICACIÓN - USUARIOS WEBGUARD
+        # ==========================================
+
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                email TEXT NOT NULL COLLATE NOCASE UNIQUE,
+
+                password_hash TEXT NOT NULL,
+
+                role TEXT NOT NULL DEFAULT 'agency'
+                    CHECK (role IN ('admin', 'agency')),
+
+                is_active INTEGER NOT NULL DEFAULT 1
+                    CHECK (is_active IN (0, 1)),
+
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # ==========================================
+        # AUTENTICACIÓN - SESIONES
+        # ==========================================
+
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS user_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                user_id INTEGER NOT NULL,
+
+                token_hash TEXT NOT NULL UNIQUE,
+
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                expires_at TEXT NOT NULL,
+
+                revoked_at TEXT,
+
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id)
+                    ON DELETE CASCADE
+            )
+        """)
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_user_sessions_user
+            ON user_sessions (user_id)
+        """)
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_user_sessions_expires
+            ON user_sessions (expires_at)
+        """)
+
+        # ==========================================
+        # SEGURIDAD - INTENTOS DE LOGIN
+        # ==========================================
+
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS login_attempts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_key TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                attempted_at INTEGER NOT NULL
+            )
+        """)
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_login_attempts_lookup
+            ON login_attempts (
+                account_key,
+                ip_address,
+                attempted_at
+            )
+        """)
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_login_attempts_time
+            ON login_attempts (attempted_at)
+        """)
+
         connection.commit()
 

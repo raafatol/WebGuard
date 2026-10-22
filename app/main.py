@@ -3,7 +3,7 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 from io import BytesIO
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -33,6 +33,9 @@ from app.database.client_repository import (
     update_client,
     delete_client
 )
+from app.database.session_repository import get_session_user
+
+from app.auth import router as auth_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -49,6 +52,141 @@ app = FastAPI(
     version="0.4.0",
     lifespan=lifespan
 )
+
+app.include_router(auth_router)
+
+@app.middleware("http")
+async def require_authentication(request: Request, call_next):
+
+    path = request.url.path
+
+    # Rutas públicas necesarias para mostrar el login.
+    public_paths = {
+        "/",
+        "/auth/login",
+    }
+
+    public_prefixes = (
+        "/static/",
+    )
+
+    if (
+        path in public_paths
+        or path.startswith(public_prefixes)
+    ):
+        return await call_next(request)
+
+    token = request.cookies.get("webguard_session")
+
+    user = get_session_user(token) if token else None
+
+    if user is None:
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse(
+            status_code=401,
+            content={
+                "detail": "Autenticación requerida"
+            },
+        )
+
+    request.state.user = user
+
+    # Protección CSRF para operaciones que modifican datos.
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+        from fastapi.responses import JSONResponse
+        from app.csrf import verify_csrf_token
+
+        # Validar el origen de las operaciones autenticadas.
+        import os
+        from urllib.parse import urlsplit
+
+        allowed_origins = {
+            value.strip().rstrip("/")
+            for value in os.environ.get(
+                "WEBGUARD_ALLOWED_ORIGINS", ""
+            ).split(",")
+            if value.strip()
+        }
+
+        if os.environ.get("WEBGUARD_LOCAL_DEV") == "1":
+            allowed_origins.update({
+                "http://127.0.0.1:8000",
+                "http://localhost:8000",
+            })
+
+        origin = request.headers.get("origin")
+        referer = request.headers.get("referer")
+
+        def is_allowed_origin(value, is_referer=False):
+            try:
+                parsed = urlsplit(value)
+
+                if (
+                    parsed.scheme not in {"http", "https"}
+                    or not parsed.netloc
+                    or parsed.username is not None
+                    or parsed.password is not None
+                ):
+                    return False
+
+                if not is_referer and (
+                    parsed.path or parsed.query or parsed.fragment
+                ):
+                    return False
+
+                candidate = (
+                    f"{parsed.scheme}://{parsed.netloc}"
+                )
+
+                return candidate in allowed_origins
+
+            except (ValueError, TypeError):
+                return False
+
+        if origin is not None:
+            valid_origin = is_allowed_origin(origin)
+        elif referer is not None:
+            valid_origin = is_allowed_origin(
+                referer,
+                is_referer=True,
+            )
+        else:
+            valid_origin = False
+
+        if not valid_origin:
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "detail": "Origen de petición no permitido"
+                },
+            )
+
+        supplied_token = request.headers.get("X-CSRF-Token")
+
+        if not verify_csrf_token(token, supplied_token):
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Token CSRF ausente o inválido"},
+            )
+
+    return await call_next(request)
+
+
+# =========================================
+# TOKEN CSRF DE LA SESIÓN
+# =========================================
+
+@app.get("/auth/csrf")
+def get_csrf_token(request: Request):
+    from app.csrf import generate_csrf_token
+
+    session_token = request.cookies.get("webguard_session")
+
+    return {
+        "csrf_token": generate_csrf_token(session_token)
+    }
+
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -82,8 +220,13 @@ def home():
 # ANALIZADOR DE SEGURIDAD
 # =========================================
 
-@app.get("/analyze")
-def analyze(domain: str):
+class AnalyzeRequest(BaseModel):
+    domain: str
+
+
+@app.post("/analyze")
+def analyze(data: AnalyzeRequest):
+    domain = data.domain
 
     try:
         validated_domain = validate_domain(domain)

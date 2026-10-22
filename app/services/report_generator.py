@@ -394,6 +394,55 @@ def tls_cipher_assessment(version, cipher):
     return 'Sin clasificación automática; requiere revisión técnica'
 
 
+# El informe utiliza únicamente observaciones guardadas; no realiza sondas de red.
+_REDIRECT_LABELS = {
+    'redirects_to_https': 'Redirección a HTTPS verificada',
+    'no_redirect': 'Sin redirección HTTP → HTTPS observada',
+    'ends_on_http': 'La cadena termina en HTTP',
+    'redirect_loop': 'Bucle de redirecciones',
+    'too_many_redirects': 'Límite de redirecciones alcanzado',
+    'external_redirect_unverified': 'Destino externo no verificado',
+    'unsupported_redirect': 'Destino no admitido / no verificado',
+    'connection_error': 'No se pudo comprobar',
+    'http_error_status': 'Respuesta HTTP de error',
+    'invalid_domain': 'Dominio no válido para la comprobación',
+    'unknown': 'Resultado no concluyente',
+}
+
+
+def redirect_result(analysis):
+    value = (analysis or {}).get('redirect')
+    return value if isinstance(value, dict) else None
+
+
+def redirect_label(redirect):
+    if redirect is None:
+        return 'No comprobada'
+    return _REDIRECT_LABELS.get(redirect.get('status'), 'Estado no reconocido / no verificado')
+
+
+def redirect_details(redirect):
+    if redirect is None:
+        return []
+    details = [('Estado', redirect_label(redirect))]
+    code = redirect.get('http_status')
+    if isinstance(code, int) and not isinstance(code, bool):
+        details.append(('Última respuesta HTTP', str(code)))
+    hops = redirect.get('hop_count')
+    if isinstance(hops, int) and not isinstance(hops, bool) and hops >= 0:
+        details.append(('Saltos observados', str(hops)))
+    if redirect.get('final_url'):
+        details.append(('Última URL comprobada', str(redirect['final_url'])[:240]))
+    if redirect.get('location'):
+        details.append(('Cabecera Location observada', str(redirect['location'])[:240]))
+    if redirect.get('error'):
+        details.append(('Error de comprobación', str(redirect['error'])[:120]))
+    for index, hop in enumerate((redirect.get('hops') or [])[:5], 1):
+        if isinstance(hop, dict):
+            details.append((f'Salto {index}', f"{str(hop.get('status', '?'))}: {str(hop.get('from', '—'))[:120]} → {str(hop.get('to', '—'))[:160]}"))
+    return details
+
+
 def positive_controls(items):
     controls=[]
     for item in items:
@@ -405,6 +454,8 @@ def positive_controls(items):
             controls.append(f'{domain}: certificado TLS válido{suffix}')
             if a.get('tls_version') in ('TLSv1.3', 'TLS 1.3'):
                 controls.append(f'{domain}: TLS 1.3 negociado en la conexión analizada')
+        if (redirect_result(a) or {}).get('status') == 'redirects_to_https':
+            controls.append(f'{domain}: redirección HTTP a HTTPS verificada en la cadena observada')
         if a.get('http_status') is not None:
             for name, hd in (a.get('headers') or {}).items():
                 if isinstance(hd,dict) and hd.get('present') is True:
@@ -514,6 +565,21 @@ def findings(items):
               title='Certificado TLS próximo a caducar',evidence=f'Quedan {days} días de validez.',
               impact='Si el certificado expira sin renovación, los clientes pueden recibir errores de conexión.',
               fix='Renovar el certificado y comprobar la renovación automática.',effort='Bajo'))
+        redirect = redirect_result(a)
+        redirect_status = (redirect or {}).get('status')
+        if redirect_status in ('no_redirect', 'ends_on_http'):
+            code = redirect.get('http_status')
+            evidence = (f'Comprobación HTTP → HTTPS: {redirect_label(redirect)}; '
+                        f'respuesta HTTP {code if isinstance(code, int) else "no disponible"}; '
+                        f'última URL {str(redirect.get("final_url") or "no disponible")[:180]}.')
+            out.append(dict(domain=domain, severity='Media',
+                title='Sin redirección HTTP → HTTPS observada' if redirect_status == 'no_redirect' else 'Cadena de redirección finalizada en HTTP',
+                evidence=evidence,
+                impact='La conexión HTTP puede permanecer sin cifrar; el riesgo depende también de HSTS, precarga y del comportamiento del cliente. No se ha demostrado explotación.',
+                fix='Configurar una redirección desde HTTP hacia HTTPS y verificar la cadena completa; revisar HSTS cuando el sitio funcione íntegramente por HTTPS.',
+                effort='Bajo'))
+        # Los estados indeterminados (errores, bucles, externos) no se convierten
+        # automáticamente en vulnerabilidades confirmadas.
         if a.get('http_status') is not None:
             for name,info in HEADER_INFO.items():
                 hd=(a.get('headers') or {}).get(name)
@@ -556,7 +622,7 @@ def ai_text(items, issues, summary):
     import logging
     log = logging.getLogger(__name__)
     evidence = {
-        'scope': 'TLS certificate and six HTTP response security headers only',
+        'scope': 'TLS certificate, six HTTP response security headers and observed HTTP-to-HTTPS redirects',
         'metrics': {'domains': stats(items)[0], 'covered': stats(items)[1],
                     'tls_valid': stats(items)[2], 'http_observed': stats(items)[3]},
         'findings': [dict(domain=x['domain'], severity=x['severity'],
@@ -686,26 +752,78 @@ def _severity_visual(issues, st):
         d.add(String(x+19, 46, label, fontName='Helvetica-Bold', fontSize=8, fillColor=MUTED))
         d.add(String(x+1, 12, str(counts[key]), fontName='Helvetica-Bold', fontSize=23, fillColor=NAVY))
     return d
+def _priority_name(issue):
+    """Nombre de control legible, nunca el título literal de un hallazgo."""
+    title = str(issue.get('title', ''))
+    if 'redirecci' in title.lower():
+        return 'la redirección HTTP → HTTPS'
+    if title.startswith('Cabecera no detectada: '):
+        return title.split(': ', 1)[1]
+    return 'el control de seguridad señalado'
+
+
+def _join_spanish(values):
+    values = list(dict.fromkeys(values))
+    if not values:
+        return ''
+    if len(values) == 1:
+        return values[0]
+    if len(values) == 2:
+        return f'{values[0]} y {values[1]}'
+    return ', '.join(values[:-1]) + ' y ' + values[-1]
+
+
 def _ai_narrative_visual(narrative, st, issues=None):
-    """Short, grounded narrative, with an actionable conclusion."""
+    """Texto breve, sin concatenar títulos de hallazgos como sustantivos."""
     import re
-    clean = re.sub(r'(?im)^\s*\*{0,2}(SITUACI[ÓO]N ACTUAL|RIESGOS POTENCIALES|PR[ÓO]XIMOS PASOS)\*{0,2}\s*[:\-]?\s*', '', narrative)
+    clean = re.sub(r'(?im)^\s*\*{0,2}(SITUACI[ÓO]N ACTUAL|RIESGOS POTENCIALES|PR[ÓO]XIMOS PASOS)\*{0,2}\s*[:\-]?\s*', '', narrative or '')
     clean = re.sub(r'\s+', ' ', clean).strip()
-    sentences = re.split(r'(?<=[.!?])\s+', clean)
-    summary = ' '.join(sentences[:3])[:600].strip()
-    summary = re.sub(r'\b(cabeceras? de seguridad) importantes\b', r'\1', summary, flags=re.IGNORECASE)
-    summary = re.sub(r'\bsolo se analizaron respuestas específicas\b', 'se analizó la respuesta HTTP registrada', summary, flags=re.IGNORECASE)
-    summary = re.sub(r'(?i)la evaluación cubrió únicamente una ruta(?: y no se analizaron otras posibles respuestas o rutas del dominio)?', 'La evaluación se basa en una única respuesta HTTP analizada; no se comprobaron otras rutas o respuestas', summary)
-    summary = re.sub(r'(?i)se (?:evaluó|analizó) (?:solo|únicamente) una ruta', 'se analizó una respuesta HTTP registrada', summary)
-    if issues:
-        top = [i for i in issues if i['severity'] in ('Alta','Media')]
-        if top:
-            names = [i['title'].split(': ')[-1] for i in top[:2]]
-            summary += ' Prioridad: revisar ' + ' y '.join(names) + ' y verificar los cambios tras su aplicación.'
-        else:
-            summary += ' Próximo paso: comprobar las observaciones y mantener la monitorización.'
+    # La plantilla determinista ya contiene sus prioridades y no se trunca.
+    if issues is not None:
+        return panel([txt('INTERPRETACIÓN AUTOMATIZADA', st['WGLabel']),
+                      txt(clean, st['WGBody'])], pad=12)
     return panel([txt('INTERPRETACIÓN AUTOMATIZADA', st['WGLabel']),
-                  txt(summary, st['WGBody'])], pad=12)
+                  txt(clean[:900], st['WGBody'])], pad=12)
+
+
+def _fallback_narrative(items, issues):
+    """Resumen breve basado solo en mediciones observadas, sin duplicar métricas."""
+    total, covered, _, _ = stats(items)
+    if not total:
+        return ('No hay dominios en alcance. Prioridad: registrar los activos y '
+                'obtener una primera medición. Alcance limitado a los datos registrados.')
+    if not covered:
+        return ('No hay mediciones concluyentes para los dominios en alcance. '
+                'Prioridad: restablecer la monitorización y repetir las comprobaciones.')
+    lead = (f'Se ha evaluado {covered} dominio.' if covered == 1 else
+            f'Se han evaluado {covered} dominios.')
+    if covered < total:
+        lead += (f' Quedan {total-covered} '
+                 f'{"dominio" if total-covered == 1 else "dominios"} sin mediciones concluyentes.')
+    missing = list(dict.fromkeys(
+        i['title'].split(': ', 1)[1] for i in issues
+        if i['title'].startswith('Cabecera no detectada: ')))
+    if missing:
+        lead += (' Las cabeceras ' + _join_spanish(missing) +
+                 ' no se detectaron en las respuestas analizadas.')
+    redirect_missing = any(i['title'] == 'Sin redirección HTTP → HTTPS observada'
+                           for i in issues)
+    redirect_http = any(i['title'] == 'Cadena de redirección finalizada en HTTP'
+                        for i in issues)
+    if redirect_missing:
+        lead += ' No se observó redirección de HTTP a HTTPS.'
+    elif redirect_http:
+        lead += ' Se observó una cadena de redirección que termina en HTTP.'
+    priority = [i for i in issues if i['severity'] in ('Alta', 'Media')]
+    if priority:
+        names = [_priority_name(i) for i in priority]
+        lead += (' Prioridad: revisar ' + _join_spanish(names) +
+                 ', y verificar los cambios tras aplicarlos.')
+    elif issues:
+        lead += ' Prioridad: revisar las recomendaciones y verificar los cambios tras aplicarlos.'
+    else:
+        lead += ' No se identificaron hallazgos en los controles comprobados.'
+    return lead + ' Alcance limitado a las respuestas registradas.'
 
 class _ChapterMarker:
     def __init__(self, elements):
@@ -717,29 +835,39 @@ def _chapter(story, number, title, subtitle, st):
     block.append(HRFlowable(width='100%',thickness=.8,color=BORDER,spaceAfter=10))
     story.append(_ChapterMarker(block))
 def _mini_status(domain, a, st):
+    """Inventario compacto: reserva espacio para las cabeceras en la misma página."""
     tls='Válido' if a.get('tls_valid') is True else 'No válido' if a.get('tls_valid') is False else 'No comprobado'
     http=str(a['http_status']) if a.get('http_status') is not None else 'No comprobado'
     hp=a.get('headers_present'); ht=a.get('headers_total')
     heads=f'{hp}/{ht}' if a.get('http_status') is not None and hp is not None and ht else 'No comprobadas'
-    content=[txt(domain,st['WGSub']),txt('Última ejecución: '+format_date(a.get('analyzed_at')),st['WGSmall']),
-      table([['CONTROL','RESULTADO'],['Certificado TLS',tls],['Respuesta HTTP',http],
-      ['Cabeceras detectadas',heads],['Días hasta caducidad TLS',str(a.get('tls_days_left')) if a.get('tls_days_left') is not None else 'No disponible'],['Activo monitorizado',domain]],[7.4*cm,9*cm],st)]
-    # Los detalles corresponden a la conexión observada; no a todos los protocolos admitidos.
-    details = [
-        ('Emisor del certificado', friendly_tls_issuer(a.get('tls_issuer'))),
-        ('Caducidad', friendly_tls_expiry(a.get('tls_expiry_date'))),
-        ('Versión TLS negociada', friendly_tls_version(a.get('tls_version'))),
-        ('Cifrado negociado', a.get('tls_cipher')),
-        ('Valoración del cifrado', tls_cipher_assessment(a.get('tls_version'), a.get('tls_cipher'))),
-        ('Firma del certificado', a.get('tls_signature_algorithm')),
-    ]
-    details = [(label, str(value)) for label, value in details if value is not None and str(value).strip()]
-    if details:
-        content.append(Spacer(1, 7))
-        content.append(txt('DETALLES TÉCNICOS TLS', st['WGLabel']))
-        for label, value in details:
-            content.append(txt(f'{label}: {value}', st['WGSmall']))
-    return panel(content,bg=colors.white,pad=12)
+    rows=[['CONTROL','RESULTADO'],['Certificado TLS',tls],['Respuesta HTTP',http],
+          ['Cabeceras detectadas',heads],['Días hasta caducidad TLS',str(a.get('tls_days_left')) if a.get('tls_days_left') is not None else 'No comprobado']]
+    return panel([txt(domain,st['WGSub']),
+                  txt('Última ejecución: '+format_date(a.get('analyzed_at')),st['WGSmall']),
+                  table(rows,[7.4*cm,9*cm],st)],bg=colors.white,pad=10)
+
+
+def _technical_status(a, st):
+    """Detalle breve, después de la tabla HTTP; sin duplicar la fila del inventario."""
+    parts=[]
+    tls=[('Emisor',friendly_tls_issuer(a.get('tls_issuer'))),
+         ('Caducidad',friendly_tls_expiry(a.get('tls_expiry_date'))),
+         ('Protocolo',friendly_tls_version(a.get('tls_version'))),
+         ('Cifrado',a.get('tls_cipher')),
+         ('Valoración',tls_cipher_assessment(a.get('tls_version'),a.get('tls_cipher'))),
+         ('Firma',a.get('tls_signature_algorithm'))]
+    tls=[f'{label}: {value}' for label,value in tls if value is not None and str(value).strip()]
+    if tls:
+        parts.append(txt('DETALLES TÉCNICOS TLS',st['WGLabel']))
+        for line in tls:
+            parts.append(txt(line,st['WGSmall']))
+    redirect=redirect_result(a)
+    if redirect is not None:
+        parts.append(txt('REDIRECCIÓN HTTP → HTTPS',st['WGLabel']))
+        for label,value in redirect_details(redirect):
+            parts.append(txt(f'{label}: {value}',st['WGSmall']))
+    return KeepTogether(parts) if parts else Spacer(1,0)
+
 def _narrative_sections(narrative, st):
     # The provider may return text with section labels but no line breaks.
     # Keep it together with the title, so no orphan heading remains on a page.
@@ -766,7 +894,8 @@ def generate_client_report(client_id,branding='webguard',company_name=None,prima
     items=get_data(client_id); issues=findings(items)
     total,covered,tls,http=stats(items); counts=Counter(i['severity'] for i in issues)
     summary=diagnosis(items,issues)
-    narrative=ai_text(items,issues,summary) if include_ai else None
+    # La interpretación comercial es determinista: no requiere llamadas de IA.
+    narrative=None
     buf=BytesIO()
     doc=SimpleDocTemplate(buf,pagesize=A4,leftMargin=2*cm,rightMargin=2*cm,
         topMargin=1.65*cm,bottomMargin=1.9*cm,title='WebGuard | '+client['name'],
@@ -799,12 +928,10 @@ def generate_client_report(client_id,branding='webguard',company_name=None,prima
     section_number=1
     def executive_context():
         blocks=[]
-        if narrative:
-            blocks.append(_ai_narrative_visual(narrative, st, issues))
-            blocks.append(txt('Interpretación automatizada basada en evidencias; no sustituye una auditoría.',st['WGSmall']))
-        elif include_ai:
-            blocks.append(insight_card('Interpretación automatizada no disponible',
-              'Se presenta el diagnóstico basado en reglas y evidencias; no se ha generado análisis externo.',st,'neutral'))
+        # La interpretación comercial mantiene una redacción consistente y
+        # verificable incluso si la IA está desactivada o falla.
+        blocks.append(_ai_narrative_visual(_fallback_narrative(items, issues), st, issues))
+        blocks.append(txt('Interpretación basada en evidencias de las mediciones registradas; no sustituye una auditoría de seguridad.', st['WGSmall']))
         positives=positive_controls(items)[:5]
         if positives:
             blocks.append(txt('Controles correctos observados',st['WGSub']))
@@ -834,6 +961,7 @@ def generate_client_report(client_id,branding='webguard',company_name=None,prima
                 story.append(KeepTogether([table(rows,[4.7*cm,2.4*cm,9.9*cm],st)]))
             else:
                 story.append(txt('HTTP no comprobado: no se deduce ausencia de cabeceras.',st['WGSmall']))
+            story.append(_technical_status(a,st))
         if issues:
             section_number+=1
             _chapter(story,f'{section_number:02d}','Hallazgos y correcciones','Riesgo, evidencia, acción concreta y esfuerzo estimado',st)
@@ -857,12 +985,12 @@ def generate_client_report(client_id,branding='webguard',company_name=None,prima
         elif not issues:
             story.append(txt('Mantener la monitorización periódica y revisar cambios de configuración.',st['WGBody']))
         if include_appendix or report_type=='technical':
-            story.append(CondPageBreak(4.5*cm))
+            story.append(PageBreak())
             section_number+=1
             _chapter(story,f'{section_number:02d}','Método y limitaciones','Trazabilidad del alcance de esta evaluación',st)
             story.append(txt('ORIGEN  /  Registros históricos de monitorización de WebGuard. Se utiliza la última ejecución por dominio y las últimas 50 mediciones como máximo.',st['WGBody']))
-            story.append(txt('ALCANCE  /  Certificado TLS, respuesta HTTP y presencia de seis cabeceras de seguridad. Los hallazgos reflejan las respuestas HTTP registradas; no se han comprobado exhaustivamente otras rutas, páginas o respuestas.',st['WGBody']))
-            story.append(KeepTogether([txt('LIMITACIONES  /  No se ha realizado pentesting, auditoría de código ni comprobación exhaustiva de vulnerabilidades. La presencia de cabeceras no garantiza una configuración segura.',st['WGBody']),txt('PERIODICIDAD  /  El informe refleja las comprobaciones registradas hasta la fecha de emisión; los intervalos entre registros pueden variar.',st['WGSmall'])]))
+            story.append(txt('ALCANCE  /  Certificado TLS, respuesta HTTP, presencia de seis cabeceras y cadena de redirección HTTP a HTTPS observada. No se han comprobado exhaustivamente otras rutas, páginas o respuestas.',st['WGBody']))
+            story.append(KeepTogether([txt('LIMITACIONES  /  No se ha realizado pentesting, auditoría de código ni comprobación exhaustiva de vulnerabilidades. Las redirecciones solo se siguen hasta cinco saltos y dentro del mismo host; los destinos externos y los errores se consideran no verificados. La ausencia de redirección no demuestra por sí sola explotación ni descarta protección HSTS en clientes.',st['WGBody']),txt('PERIODICIDAD  /  El informe refleja las comprobaciones registradas hasta la fecha de emisión; los intervalos entre registros pueden variar.',st['WGSmall'])]))
     else:
         section_number+=1
         _chapter(story,f'{section_number:02d}','Acciones recomendadas','Decisiones sugeridas para el siguiente ciclo de monitorización',st)
@@ -873,6 +1001,7 @@ def generate_client_report(client_id,branding='webguard',company_name=None,prima
         glossary = [
             ('TLS', 'Protocolo que protege la comunicación entre navegador y servidor.'),
             ('HSTS', 'Indicación para que el navegador utilice HTTPS en conexiones futuras.'),
+            ('Redirección HTTP → HTTPS', 'Envía automáticamente al visitante a la versión cifrada del sitio.'),
             ('CSP', 'Política que restringe los orígenes de contenido que puede cargar una página.'),
             ('Cabecera HTTP', 'Información enviada por el servidor junto a una respuesta web.'),
             ('X-Content-Type-Options', 'Evita que ciertos navegadores interpreten tipos MIME distintos del declarado.'),
@@ -901,10 +1030,14 @@ def generate_client_report(client_id,branding='webguard',company_name=None,prima
               f'Teléfono: {contact_phone}' if contact_phone else '']
     contacts=[c for c in contacts if c]
     if contacts:
-        cta='¿Quieres que apliquemos estas correcciones o monitoricemos tus dominios de forma continua? Escríbenos o visita nuestros canales de contacto: '+ ' · '.join(contacts)
+        cta=('Solicita una revisión técnica de los hallazgos, apoyo para aplicar las '
+             'correcciones y una nueva verificación de los controles. '
+             'Contacto: ' + ' · '.join(contacts) + '.')
     else:
-        cta='Revisar las correcciones con el responsable técnico y repetir las comprobaciones para verificar los cambios.'
-    story.append(KeepTogether([Spacer(1,10),insight_card('SIGUIENTE PASO',cta,st)]))
+        cta=('Solicita una revisión técnica de los hallazgos y apoyo para aplicar '
+             'las correcciones y verificar los resultados. '
+             'Consulta con el proveedor del informe los canales de contacto disponibles.')
+    story.append(KeepTogether([Spacer(1,10),insight_card('SOLICITA UNA REVISIÓN TÉCNICA',cta,st)]))
     story.append(txt('Alcance limitado a los controles registrados. Documento confidencial; no sustituye una auditoría de seguridad.',st['WGSmall']))
     class NumberedCanvas(pdfcanvas.Canvas):
         # Dos pasadas internas: numeración de páginas sin alterar la portada.

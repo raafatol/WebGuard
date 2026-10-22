@@ -6282,3 +6282,389 @@ button {
     background-color: #1d4ed8 !important;
     border-color: #1d4ed8 !important;
 }
+/* Historial compacto: extensión del panel existente, sin crear otra sección. */
+#section-monitoring .wg-history-insights {margin:12px 0 16px;border:1px solid #334b64;border-radius:12px;background:#16283c;color:#e4eff9;}
+#section-monitoring .wg-history-insights > summary {cursor:pointer;padding:14px 16px;font-weight:650;list-style-position:inside;}
+#section-monitoring .wg-history-insights-body {padding:0 16px 16px;}
+#section-monitoring .wg-history-insights h3 {font-size:14px;margin:14px 0 8px;color:#e4eff9;}
+#section-monitoring .wg-history-help {font-size:12px;color:#a8bbcf;margin:0 0 8px;}
+#section-monitoring .wg-history-chart {min-height:155px;overflow:hidden;}
+#section-monitoring .wg-history-chart svg {width:100%;height:auto;max-height:190px;display:block;}
+#section-monitoring .wg-history-compare-controls {display:flex;flex-wrap:wrap;gap:12px;margin:10px 0;}
+#section-monitoring .wg-history-compare-controls label {display:flex;flex:1 1 190px;flex-direction:column;gap:5px;font-size:12px;color:#a8bbcf;}
+#section-monitoring .wg-history-compare-controls select {width:100%;padding:9px;border:1px solid #48617c;border-radius:8px;background:#0e2032;color:#f1f6fc;}
+#section-monitoring .wg-history-compare-row {display:flex;gap:14px;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid #334b64;font-size:12px;}
+#section-monitoring .wg-history-compare-row span {text-align:right;color:#c2d5e7;}
+@media(max-width:650px){#section-monitoring .wg-history-compare-row{flex-direction:column;gap:4px;}#section-monitoring .wg-history-compare-row span{text-align:left;}}
+
+/* Corrección: el historial desplegado debe crecer sin recortar gráfica ni comparación.
+   El panel de alertas conserva su altura compacta independiente. */
+#section-monitoring .monitor-bottom-grid > .history-panel:has(.wg-history-insights[open]) {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    align-self: start;
+}
+#section-monitoring .history-panel:has(.wg-history-insights[open]) .history-table-wrapper {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 235px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+#section-monitoring .history-panel .wg-history-insights {
+    flex-shrink: 0;
+}
+
+/* Historial: panel de detalles a ancho completo debajo de las dos tarjetas. */
+#section-monitoring > #wg-history-insights,
+#section-monitoring .wg-history-insights {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 14px;
+    margin-bottom: 0;
+}
+#section-monitoring .monitor-bottom-grid:not(:has(> .history-panel:not([hidden]))) + #wg-history-insights {
+    display: none;
+}
+#section-monitoring .monitor-bottom-grid > .history-panel {
+    height: 340px;
+    max-height: 340px;
+    overflow: hidden;
+    align-self: stretch;
+}
+#section-monitoring .monitor-bottom-grid > .history-panel .history-table-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+}
+#section-monitoring .wg-history-insights-body {
+    padding: 0 18px 18px;
+}
+#section-monitoring .wg-history-chart svg {
+    max-height: 210px;
+}
+
+/* Historial: identificar claramente el dominio de los datos mostrados. */
+#section-monitoring .wg-history-insights-domain {
+    display: inline-block;
+    margin-left: 8px;
+    font-weight: 500;
+    color: #7dd3df;
+    overflow-wrap: anywhere;
+}
+/* Alertas: mantener la tarjeta alineada con el historial aun con 100 avisos. */
+#section-monitoring .monitor-bottom-grid > .alerts-panel {
+    height: 340px !important;
+    max-height: 340px !important;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+#section-monitoring .alerts-panel .alerts-heading,
+#section-monitoring .alerts-panel #alerts-message {
+    flex: 0 0 auto;
+}
+#section-monitoring .alerts-panel #alerts-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #48617c transparent;
+}
+@media (max-width: 1050px) {
+    #section-monitoring .monitor-bottom-grid > .alerts-panel {
+        height: 340px !important;
+        max-height: 340px !important;
+    }
+}
+
+/* =========================================
+   WEBGUARD — PANTALLA DE LOGIN
+========================================= */
+
+.wg-login-screen:not([hidden]) {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    background:
+        radial-gradient(
+            ellipse at 50% 15%,
+            rgba(25, 184, 190, 0.11),
+            transparent 55%
+        ),
+        #0b1422;
+}
+
+.wg-login-screen[hidden] {
+    display: none !important;
+}
+
+.wg-login-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 42px 36px;
+    border: 1px solid #263b50;
+    border-radius: 18px;
+    background: #142235;
+    box-shadow: 0 24px 75px rgba(0, 0, 0, 0.35);
+}
+
+.wg-login-logo {
+    display: block;
+    width: 210px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 32px;
+    object-fit: contain;
+}
+
+.wg-login-card h1 {
+    margin: 0 0 10px;
+    color: #f2f6ff;
+    font-size: 25px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.wg-login-description {
+    margin: 0 0 30px;
+    color: #9baec8;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+#login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#login-form label {
+    color: #dce7f5;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#login-form input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 15px;
+    border: 1px solid #344b63;
+    border-radius: 9px;
+    outline: none;
+    background: #0e1b2b;
+    color: #f2f6ff;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#login-form input::placeholder {
+    color: #74869c;
+}
+
+#login-form input:focus {
+    border-color: #28c4c7;
+    box-shadow: 0 0 0 3px rgba(40, 196, 199, 0.13);
+}
+
+.wg-login-error {
+    min-height: 18px;
+    margin: 2px 0;
+    color: #fb7185;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+#login-submit {
+    width: 100%;
+    margin-top: 8px;
+    padding: 14px;
+    border: none;
+    border-radius: 9px;
+    background: #20bfc3;
+    color: #071521;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+#login-submit:hover {
+    background: #36d5d8;
+    transform: translateY(-1px);
+}
+
+#login-submit:disabled {
+    opacity: 0.65;
+    cursor: wait;
+    transform: none;
+}
+
+@media (max-width: 480px) {
+    .wg-login-card {
+        padding: 32px 24px;
+    }
+
+    .wg-login-card h1 {
+        font-size: 22px;
+    }
+}
+
+/* WEBGUARD — AJUSTES DEL LOGIN */
+
+.wg-login-logo {
+    width: 245px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 32px;
+    object-fit: contain;
+}
+
+#login-submit {
+    font-family: inherit;
+}
+
+/* WEBGUARD — IDENTIDAD VISUAL DEL LOGIN */
+
+.wg-login-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.wg-login-symbol {
+    display: block;
+    width: 95px;
+    height: 65px;
+    object-fit: contain;
+}
+
+.wg-login-brand .wg-login-logo {
+    display: block;
+    width: 220px;
+    height: auto;
+    margin: 0;
+    object-fit: contain;
+}
+
+/* Tipografía coherente con la interfaz */
+.wg-login-card #login-submit {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* WEBGUARD — LOGO DEFINITIVO DEL LOGIN */
+
+.wg-login-brand {
+    margin-bottom: 30px;
+}
+
+.wg-login-brand .wg-login-logo {
+    width: 265px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+/* =========================================
+   WEBGUARD - FLECHA DESPLEGABLE TLS
+   ========================================= */
+
+.wg-tls-technical > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    list-style: none;
+}
+
+.wg-tls-technical > summary::-webkit-details-marker {
+    display: none;
+}
+
+.wg-tls-technical > summary::after {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    margin-left: 12px;
+    border-right: 2px solid #38bdf8;
+    border-bottom: 2px solid #38bdf8;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+.wg-tls-technical[open] > summary::after {
+    transform: rotate(225deg);
+}
+
+.wg-tls-technical > summary:focus-visible {
+    outline: 2px solid #38bdf8;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+/* Flecha definitiva del desplegable TLS */
+.wg-tls-technical > summary::after {
+    content: none !important;
+}
+
+.wg-tls-technical > summary .wg-tls-arrow {
+    display: inline-block;
+    margin-left: auto;
+    padding-left: 12px;
+    color: #38bdf8;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.wg-tls-technical[open] > summary .wg-tls-arrow {
+    transform: rotate(180deg);
+}
+
+
+/* Flecha TLS: mismo aspecto discreto que el desplegable HTTP */
+.wg-tls-technical > summary {
+    justify-content: flex-start !important;
+    gap: 0 !important;
+}
+
+.wg-tls-technical > summary .wg-tls-arrow {
+    order: -1;
+    margin: 0 6px 0 0 !important;
+    padding: 0 !important;
+    color: #55b9ff;
+    font-size: 0 !important;
+    line-height: 1;
+    transform: none;
+}
+
+.wg-tls-technical > summary .wg-tls-arrow::before {
+    content: "";
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent !important;
+    border-bottom: 5px solid transparent !important;
+    border-left: 7px solid #55b9ff !important;
+}
+
+.wg-tls-technical[open] > summary .wg-tls-arrow {
+    transform: rotate(90deg);
+}

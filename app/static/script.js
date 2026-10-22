@@ -1,6 +1,147 @@
 
 "use strict";
 
+// WEBGUARD — El dashboard permanece oculto hasta validar la sesión.
+const wgAuthStyles = document.createElement("style");
+wgAuthStyles.textContent = `
+  html:not(.wg-authenticated) body > .sidebar,
+  html:not(.wg-authenticated) body > .header,
+  html:not(.wg-authenticated) body > .container,
+  html:not(.wg-authenticated) body > dialog { display: none !important; }
+  html:not(.wg-authenticated) body { background: #0b1422; }
+`;
+document.head.appendChild(wgAuthStyles);
+
+let wgAuthenticated = false;
+let wgAuthEpoch = 0;
+let wgCsrfToken = null;
+let wgCsrfPromise = null;
+
+const wgNativeFetch = window.fetch.bind(window);
+
+function wgShowLogin() {
+    wgAuthEpoch++;
+    wgAuthenticated = false;
+    wgCsrfToken = null;
+    wgCsrfPromise = null;
+
+    document.documentElement.classList.remove("wg-authenticated");
+    document.getElementById("login-screen").hidden = false;
+    document.getElementById("login-password").value = "";
+    document.getElementById("account-panel").hidden = true;
+}
+
+function wgShowDashboard() {
+    wgAuthenticated = true;
+    wgCsrfToken = null;
+    wgCsrfPromise = null;
+
+    document.getElementById("login-screen").hidden = true;
+    document.documentElement.classList.add("wg-authenticated");
+}
+
+async function wgGetCsrfToken() {
+    if (wgCsrfToken) {
+        return wgCsrfToken;
+    }
+
+    if (!wgCsrfPromise) {
+        const epoch = wgAuthEpoch;
+
+        wgCsrfPromise = (async () => {
+            const response = await wgNativeFetch("/auth/csrf", {
+                credentials: "same-origin",
+                cache: "no-store"
+            });
+
+            if (response.status === 401) {
+                if (epoch === wgAuthEpoch) {
+                    wgShowLogin();
+                }
+                throw new Error("La sesión ha caducado.");
+            }
+
+            if (!response.ok) {
+                throw new Error("No se pudo obtener el token CSRF.");
+            }
+
+            const data = await response.json();
+
+            if (epoch !== wgAuthEpoch || !wgAuthenticated) {
+                throw new Error("La sesión ha cambiado.");
+            }
+
+            if (typeof data.csrf_token !== "string") {
+                throw new Error("Token CSRF inválido.");
+            }
+
+            wgCsrfToken = data.csrf_token;
+            return wgCsrfToken;
+        })().finally(() => {
+            if (epoch === wgAuthEpoch) {
+                wgCsrfPromise = null;
+            }
+        });
+    }
+
+    return wgCsrfPromise;
+}
+
+// Control centralizado de autenticación y CSRF.
+window.fetch = async (resource, options = {}) => {
+    const url = typeof resource === "string" ? resource : resource.url;
+    const parsedUrl = new URL(url, window.location.href);
+    const path = parsedUrl.pathname;
+
+    const authRoute = (
+        path === "/auth/login" ||
+        path === "/auth/me" ||
+        path === "/auth/logout" ||
+        path === "/auth/csrf"
+    );
+
+    if (!authRoute && !wgAuthenticated) {
+        throw new Error("Debes iniciar sesión para continuar.");
+    }
+
+    const epoch = wgAuthEpoch;
+    const requestOptions = { ...options, credentials: "same-origin" };
+
+    const method = (
+        options.method ||
+        (resource instanceof Request ? resource.method : "GET")
+    ).toUpperCase();
+
+    if (
+        parsedUrl.origin === window.location.origin &&
+        ["POST", "PUT", "PATCH", "DELETE"].includes(method) &&
+        path !== "/auth/login"
+    ) {
+        const token = await wgGetCsrfToken();
+
+        if (epoch !== wgAuthEpoch) {
+            throw new Error("La sesión ha cambiado.");
+        }
+
+        const headers = new Headers(
+            options.headers ||
+            (resource instanceof Request ? resource.headers : undefined)
+        );
+
+        headers.set("X-CSRF-Token", token);
+        requestOptions.headers = headers;
+    }
+
+    const response = await wgNativeFetch(resource, requestOptions);
+
+    if (!authRoute && response.status === 401 && epoch === wgAuthEpoch) {
+        wgShowLogin();
+    }
+
+    return response;
+};
+
+
 // =========================================
 // ELEMENTOS DEL ANALIZADOR
 // =========================================
@@ -140,6 +281,13 @@ function displayTLS(tls) {
         panel.className = "wg-tls-technical";
         const summary = document.createElement("summary");
         summary.textContent = "Detalles técnicos";
+
+        const arrow = document.createElement("span");
+        arrow.className = "wg-tls-arrow";
+        arrow.textContent = "▼";
+        arrow.setAttribute("aria-hidden", "true");
+        summary.appendChild(arrow);
+
         panel.appendChild(summary);
         const content = document.createElement("div");
         content.className = "wg-tls-technical-content";
@@ -359,9 +507,13 @@ analyzeForm.addEventListener("submit", async event => {
     setStatus(message, "Analizando dominio...");
 
     try {
-        const response = await fetch(
-            `/analyze?domain=${encodeURIComponent(domain)}`
-        );
+        const response = await fetch("/analyze", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ domain })
+        });
 
         const data = await response.json();
 
@@ -505,6 +657,110 @@ function createHistoryCell(row, text, className = "") {
     row.appendChild(cell);
 }
 
+// Historial compacto: no calcula una puntuación global ni infiere fallos de datos ausentes.
+const wgHistoryChart = document.getElementById("wg-history-chart");
+const wgHistoryBefore = document.getElementById("wg-history-before");
+const wgHistoryAfter = document.getElementById("wg-history-after");
+const wgHistoryComparison = document.getElementById("wg-history-comparison");
+const wgHistoryInsights = document.getElementById("wg-history-insights");
+let wgHistoryData = [];
+
+function wgValidHeaderPoint(item) {
+    return Number.isInteger(item.headers_present) && Number.isInteger(item.headers_total) &&
+        item.headers_total > 0 && item.headers_present >= 0 && item.headers_present <= item.headers_total;
+}
+function wgHistorySvg(data) {
+    wgHistoryChart.replaceChildren();
+    const points = data.slice().reverse();
+    const valid = points.filter(wgValidHeaderPoint);
+    if (!valid.length) {
+        wgHistoryChart.textContent = "No hay mediciones de cabeceras comparables.";
+        return;
+    }
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 640 174");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", `Evolución de cabeceras: ${valid.length} mediciones con datos`);
+    const max = Math.max(6, ...valid.map(x => x.headers_total));
+    const x = i => 42 + (points.length === 1 ? 280 : 574 * i / (points.length - 1));
+    const y = v => 142 - 112 * v / max;
+    const make = (name, attrs, label) => {
+        const el = document.createElementNS(ns, name);
+        for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+        if (label != null) el.textContent = label;
+        svg.appendChild(el); return el;
+    };
+    for (const tick of [0, Math.round(max / 2), max]) {
+        make("line", {x1:42, y1:y(tick), x2:616, y2:y(tick), stroke:"#52657c", "stroke-opacity":0.45});
+        make("text", {x:30,y:y(tick)+4,"text-anchor":"end",fill:"#9fb1c8","font-size":12}, tick);
+    }
+    // Las mediciones sin datos interrumpen la línea; no se interpolan huecos.
+    let segment=[];
+    function flush() {
+        if (segment.length > 1) make("polyline", {points:segment.join(" "),fill:"none",stroke:"#30c9cc","stroke-width":3,"stroke-linecap":"round","stroke-linejoin":"round"});
+        segment=[];
+    }
+    points.forEach((item,i) => {
+        if (!wgValidHeaderPoint(item)) { flush(); return; }
+        segment.push(`${x(i)},${y(item.headers_present)}`);
+        const dot=make("circle",{cx:x(i),cy:y(item.headers_present),r:4,fill:"#30c9cc"});
+        const title=document.createElementNS(ns,"title");
+        title.textContent=`${formatDate(item.analyzed_at)}: ${item.headers_present}/${item.headers_total}`;
+        dot.appendChild(title);
+    });
+    flush();
+    make("text",{x:42,y:164,fill:"#9fb1c8","font-size":11},formatDate(points[0].analyzed_at));
+    if(points.length>1) make("text",{x:616,y:164,"text-anchor":"end",fill:"#9fb1c8","font-size":11},formatDate(points[points.length-1].analyzed_at));
+    wgHistoryChart.appendChild(svg);
+}
+function wgRedirectLabel(item) {
+    const status=item.redirect?.status;
+    const labels={redirects_to_https:"Redirige a HTTPS",no_redirect:"Sin redirección observada",ends_on_http:"Termina en HTTP",redirect_loop:"Bucle detectado",too_many_redirects:"Límite de saltos",external_redirect_unverified:"Destino externo sin verificar",connection_error:"Error de conexión"};
+    return labels[status] || "Sin datos concluyentes";
+}
+function wgHistoryCompare() {
+    wgHistoryComparison.replaceChildren();
+    const a=wgHistoryData[Number(wgHistoryBefore.value)];
+    const b=wgHistoryData[Number(wgHistoryAfter.value)];
+    if (!a || !b) { wgHistoryComparison.textContent="Se necesitan dos análisis para comparar.";return; }
+    if (a.id === b.id) { wgHistoryComparison.textContent="Selecciona dos análisis diferentes.";return; }
+    const ordered=[a,b].sort((u,v)=>new Date(u.analyzed_at)-new Date(v.analyzed_at) || u.id-v.id);
+    const [before,after]=ordered;
+    const rows=[
+        ["TLS", x=>x.tls_valid===true?"Válido":x.tls_valid===false?"No válido":"Sin datos"],
+        ["HTTP", x=>x.http_status == null?"Sin datos":String(x.http_status)],
+        ["Cabeceras", x=>wgValidHeaderPoint(x)?`${x.headers_present}/${x.headers_total}`:"Sin datos"],
+        ["Redirección",wgRedirectLabel]
+    ];
+    for(const [name,fn] of rows) {
+        const line=document.createElement("div");line.className="wg-history-compare-row";
+        const label=document.createElement("strong");label.textContent=name;
+        const value=document.createElement("span");
+        const old=fn(before),now=fn(after);
+        value.textContent=`${old} → ${now}${old===now?" · Sin cambios":" · Cambio observado"}`;
+        line.append(label,value);wgHistoryComparison.appendChild(line);
+    }
+}
+function wgHistoryInsightsRender(data) {
+    wgHistoryData=data;
+    wgHistorySvg(data);
+    wgHistoryBefore.replaceChildren();wgHistoryAfter.replaceChildren();
+    data.forEach((item,i)=>{
+        for(const select of [wgHistoryBefore,wgHistoryAfter]) {
+            const option=document.createElement("option");option.value=String(i);
+            option.textContent=`${formatDate(item.analyzed_at)} · #${item.id}`;
+            select.appendChild(option);
+        }
+    });
+    wgHistoryBefore.value=String(Math.min(1,data.length-1));
+    wgHistoryAfter.value="0";
+    wgHistoryComparison.textContent=data.length<2?"Se necesitan dos análisis para comparar.":"";
+    if(data.length>=2) wgHistoryCompare();
+}
+wgHistoryBefore.addEventListener("change",wgHistoryCompare);
+wgHistoryAfter.addEventListener("change",wgHistoryCompare);
+
 async function loadHistory(domain) {
     const requestId = ++historyRequestId;
 
@@ -512,6 +768,8 @@ async function loadHistory(domain) {
     historyPanel.hidden = false;
 
     historyDomain.textContent = domain;
+    const insightsDomain = document.getElementById("wg-history-insights-domain");
+    if (insightsDomain) insightsDomain.textContent = `· ${domain}`;
     historyBody.replaceChildren();
     setStatus(historyMessage, "Cargando historial...");
 
@@ -536,6 +794,11 @@ async function loadHistory(domain) {
         }
 
         historyBody.replaceChildren();
+        wgHistoryData = [];
+        wgHistoryChart.replaceChildren();
+        wgHistoryComparison.replaceChildren();
+        wgHistoryBefore.replaceChildren();
+        wgHistoryAfter.replaceChildren();
 
         if (!Array.isArray(data) || data.length === 0) {
             setStatus(
@@ -549,6 +812,8 @@ async function loadHistory(domain) {
             historyMessage,
             `${data.length} análisis mostrados (máximo 50).`
         );
+
+        wgHistoryInsightsRender(data);
 
         for (const analysis of data) {
             const row = document.createElement("tr");
@@ -927,7 +1192,7 @@ domainForm.addEventListener("submit", async event => {
 // INICIALIZACIÓN
 // =========================================
 
-loadDomains();
+// Inicio controlado tras verificar /auth/me: loadDomains();
 
 
 /* =========================================
@@ -1031,7 +1296,7 @@ refreshAlertsBtn.addEventListener("click", loadAlerts);
 
 
 // Cargar las alertas al abrir WebGuard
-loadAlerts();
+// Inicio controlado tras verificar /auth/me: loadAlerts();
 
 
 
@@ -1498,7 +1763,7 @@ clientForm.addEventListener("submit", async event => {
 });
 
 // Cargar clientes al iniciar WebGuard
-loadClients();
+// Inicio controlado tras verificar /auth/me: loadClients();
 
 
 /* =========================================
@@ -1640,7 +1905,7 @@ async function loadDomainClients() {
     }
 }
 
-loadDomainClients();
+// Inicio controlado tras verificar /auth/me: loadDomainClients();
 
 
 /* =========================================
@@ -2591,7 +2856,7 @@ async function loadDashboard() {
 }
 
 // Cargar estadísticas al iniciar WebGuard.
-loadDashboard();
+// Inicio controlado tras verificar /auth/me: loadDashboard();
 
 // Actualizar al entrar en Resumen.
 document.querySelector(
@@ -2692,7 +2957,7 @@ notificationsViewAlerts.addEventListener("click", () => {
     ).click();
 });
 
-loadNotifications();
+// Inicio controlado tras verificar /auth/me: loadNotifications();
 
 /* =========================================
    WEBGUARD — MENÚ DE USUARIO
@@ -2849,7 +3114,7 @@ async function loadMonitoringStats() {
     }
 }
 
-loadMonitoringStats();
+// Inicio controlado tras verificar /auth/me: loadMonitoringStats();
 
 document.querySelector(
     '.sidebar [data-section="monitoring"]'
@@ -2887,3 +3152,96 @@ monitorAddDomainToggle.addEventListener("click", () => {
 
 document.getElementById("monitor-domain-filter")
     .addEventListener("input", renderDomainsTable);
+
+/* =========================================
+   WEBGUARD — AUTENTICACIÓN DE LA INTERFAZ
+========================================= */
+const wgLoginForm = document.getElementById("login-form");
+const wgLoginEmail = document.getElementById("login-email");
+const wgLoginPassword = document.getElementById("login-password");
+const wgLoginError = document.getElementById("login-error");
+const wgLoginSubmit = document.getElementById("login-submit");
+
+function wgLoadInitialData() {
+    // No iniciar consultas privadas hasta confirmar la sesión.
+    void Promise.allSettled([
+        loadDomains(), loadAlerts(), loadClients(), loadDomainClients(),
+        loadDashboard(), loadNotifications(), loadMonitoringStats()
+    ]);
+}
+
+async function wgCheckSession() {
+    try {
+        const response = await fetch("/auth/me", { cache: "no-store" });
+        if (!response.ok) {
+            wgShowLogin();
+            return;
+        }
+        wgShowDashboard();
+        wgLoadInitialData();
+    } catch (error) {
+        wgShowLogin();
+        wgLoginError.textContent = "No se pudo comprobar la sesión. Comprueba la conexión.";
+    }
+}
+
+wgLoginForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    wgLoginError.textContent = "";
+    wgLoginSubmit.disabled = true;
+    wgLoginSubmit.textContent = "Comprobando...";
+    try {
+        const response = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: wgLoginEmail.value.trim(),
+                password: wgLoginPassword.value
+            })
+        });
+        if (!response.ok) {
+            wgLoginError.textContent = response.status === 429
+                ? "Demasiados intentos. Espera unos minutos antes de volver a probar."
+                : response.status === 401 || response.status === 400 || response.status === 422
+                    ? "Correo o contraseña incorrectos."
+                    : "No se pudo iniciar sesión. Inténtalo de nuevo.";
+            return;
+        }
+        const check = await fetch("/auth/me", { cache: "no-store" });
+        if (!check.ok) {
+            wgShowLogin();
+            wgLoginError.textContent = "No se pudo confirmar la sesión.";
+            return;
+        }
+        wgLoginPassword.value = "";
+        wgShowDashboard();
+        wgLoadInitialData();
+    } catch (error) {
+        wgLoginError.textContent = "Error de conexión. Inténtalo de nuevo.";
+    } finally {
+        wgLoginSubmit.disabled = false;
+        wgLoginSubmit.textContent = "Iniciar sesión";
+    }
+});
+
+const wgLogoutButton = document.createElement("button");
+wgLogoutButton.type = "button";
+wgLogoutButton.id = "account-logout-btn";
+wgLogoutButton.className = "account-panel-option";
+wgLogoutButton.textContent = "Cerrar sesión";
+accountPanel.insertBefore(wgLogoutButton, accountPanel.querySelector(".account-panel-footer"));
+wgLogoutButton.addEventListener("click", async () => {
+    wgLogoutButton.disabled = true;
+    try {
+        const response = await fetch("/auth/logout", { method: "POST" });
+        if (!response.ok) throw new Error("No se pudo cerrar la sesión.");
+        wgShowLogin();
+        wgLoginError.textContent = "";
+    } catch (error) {
+        alert("No se pudo cerrar la sesión. Inténtalo de nuevo.");
+    } finally {
+        wgLogoutButton.disabled = false;
+    }
+});
+
+void wgCheckSession();
