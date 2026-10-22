@@ -339,18 +339,27 @@ def list_client_domains(client_id: int):
 # =========================================
 
 @app.get("/reports/clients/{client_id}/pdf")
-def download_client_report(client_id: int):
+def download_client_report(
+    client_id: int,
+    report_type: str = "complete",
+    include_ai: bool = True,
+    include_history: bool = True,
+    include_appendix: bool = True,
+):
     """
     Genera y descarga un informe PDF con los últimos
     análisis de los dominios asociados a un cliente.
     """
 
     try:
-        pdf_bytes = generate_client_report(client_id)
+        pdf_bytes = generate_client_report(
+            client_id, report_type=report_type, include_ai=include_ai,
+            include_history=include_history, include_appendix=include_appendix
+        )
 
     except ValueError as error:
         raise HTTPException(
-            status_code=404,
+            status_code=400 if "Tipo de informe" in str(error) else 404,
             detail=str(error)
         )
 

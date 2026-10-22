@@ -17,7 +17,7 @@ from app.database.email_repository import (
 
 from app.services.domain_validator import validate_domain
 from app.services.security_analyzer import analyze_website
-from app.services.change_detector import detect_changes
+from app.services.change_detector import detect_changes, detect_redirect_changes
 from app.services.email_notifier import send_alert_email
 
 
@@ -175,7 +175,7 @@ def monitor_domains():
                 changes = detect_changes(
                     previous,
                     current
-                )
+                ) + detect_redirect_changes(previous, current)
 
                 # 5. Guardar alertas.
                 for change in changes:

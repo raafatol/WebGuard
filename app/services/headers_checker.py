@@ -1,81 +1,42 @@
-
+"""HTTP checks with explicit distinction between absence and failure."""
 import httpx
 
-
 SECURITY_HEADERS = {
-    "strict-transport-security": "HSTS",
-    "content-security-policy": "CSP",
-    "x-frame-options": "X-Frame-Options",
-    "x-content-type-options": "X-Content-Type-Options",
-    "referrer-policy": "Referrer-Policy",
-    "permissions-policy": "Permissions-Policy"
+    'strict-transport-security': 'HSTS',
+    'content-security-policy': 'CSP',
+    'x-frame-options': 'X-Frame-Options',
+    'x-content-type-options': 'X-Content-Type-Options',
+    'referrer-policy': 'Referrer-Policy',
+    'permissions-policy': 'Permissions-Policy',
 }
 
 
 def check_headers(domain):
-    """
-    Comprueba las cabeceras de seguridad HTTP.
-
-    Distingue entre:
-    - Comprobación completada.
-    - Error de conexión o respuesta.
-    """
-
-    url = f"https://{domain}"
-
+    # domain must already be validated by validate_domain; never accept a URL here.
+    url = f'https://{domain}'
     try:
-        with httpx.Client(
-            timeout=5,
-            follow_redirects=False,
-            trust_env=False
-        ) as client:
-
+        with httpx.Client(timeout=httpx.Timeout(10.0, connect=5.0),
+                          follow_redirects=True, max_redirects=5,
+                          trust_env=False, verify=True) as client:
             response = client.get(url)
-
             results = {}
-
-            for header, name in SECURITY_HEADERS.items():
-                value = response.headers.get(header)
-
-                results[name] = {
-                    "present": value is not None,
-                    "value": value
-                }
-
-            present = sum(
-                item["present"]
-                for item in results.values()
-            )
-
+            for key, name in SECURITY_HEADERS.items():
+                value = response.headers.get(key)
+                results[name] = {'present': value is not None, 'value': value}
             return {
-                "domain": domain,
-                "status": "success",
-                "http_status": response.status_code,
-                "headers": results,
-                "present_count": present,
-                "total_headers": len(SECURITY_HEADERS),
-                "error": None
+                'domain': domain, 'status': 'success',
+                'http_status': response.status_code,
+                'headers': results,
+                'present_count': sum(v['present'] for v in results.values()),
+                'total_headers': len(SECURITY_HEADERS), 'error': None,
+                'error_type': None,
             }
-
-    except httpx.HTTPError as error:
-
-        # No se ha podido obtener una respuesta HTTP.
-        # No debemos interpretar las cabeceras como ausentes.
-
-        results = {}
-
-        for name in SECURITY_HEADERS.values():
-            results[name] = {
-                "present": None,
-                "value": None
-            }
-
+    except httpx.HTTPError as exc:
+        # The database stores unknown as NULL; do not turn it into 0 headers.
         return {
-            "domain": domain,
-            "status": "error",
-            "http_status": None,
-            "headers": results,
-            "present_count": None,
-            "total_headers": len(SECURITY_HEADERS),
-            "error": str(error)
+            'domain': domain, 'status': 'error', 'http_status': None,
+            'headers': {name: {'present': None, 'value': None}
+                        for name in SECURITY_HEADERS.values()},
+            'present_count': None, 'total_headers': len(SECURITY_HEADERS),
+            'error': str(exc), 'error_type': type(exc).__name__,
         }

@@ -14,6 +14,7 @@ const results = document.getElementById("results");
 const resultDomain = document.getElementById("result-domain");
 const tlsStatus = document.getElementById("tls-status");
 const tlsExpiry = document.getElementById("tls-expiry");
+const tlsAdvanced = document.getElementById("tls-advanced");
 const httpStatus = document.getElementById("http-status");
 const headersCount = document.getElementById("headers-count");
 const headersList = document.getElementById("headers-list");
@@ -40,16 +41,56 @@ function setStatus(element, text, className = "") {
 // MOSTRAR RESULTADOS
 // =========================================
 
+function tlsDetails(tls) {
+    if (!tls || tls.valid !== true) return [];
+    const fields = [
+        ["Emisor", tls.issuer || tls.tls_issuer],
+        ["Caducidad (UTC)", tls.expiry_date || tls.tls_expiry_date],
+        ["TLS negociado", tls.tls_version],
+        ["Cifrado negociado", tls.cipher || tls.tls_cipher],
+        ["Firma del certificado", tls.signature_algorithm || tls.tls_signature_algorithm]
+    ];
+    return fields.filter(([, value]) => value != null && String(value).trim() !== "");
+}
+
+function tlsTooltip(analysis) {
+    const normalized = { ...analysis, valid: analysis?.tls_valid };
+    return tlsDetails(normalized).map(([label, value]) => `${label}: ${value}`).join("\n");
+}
+
+function tlsIssuerName(value) {
+    if (!value) return "No disponible";
+    const raw = String(value);
+    const org = raw.match(/(?:^|,\s*)organizationName=([^,]+)/);
+    const cn = raw.match(/(?:^|,\s*)commonName=([^,]+)/);
+    if (org) return `${org[1].trim()}${cn ? " · " + cn[1].trim() : ""}`;
+    return raw;
+}
+
+function tlsPrettyDate(value, detailed = false) {
+    if (!value) return "No disponible";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    const options = detailed
+        ? { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }
+        : { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" };
+    return new Intl.DateTimeFormat("es-ES", options).format(date) + (detailed ? " UTC" : "");
+}
+
 function displayTLS(tls) {
-    if (tls.valid === true) {
-        setStatus(tlsStatus, "Certificado TLS válido", "ok");
+    tlsAdvanced.replaceChildren();
+    const valid = tls.valid === true;
+    const days = tls.days_left;
+    const issuer = tls.issuer || tls.tls_issuer;
+    const expiry = tls.expiry_date || tls.tls_expiry_date;
+    const version = tls.tls_version;
+    const cipher = tls.cipher || tls.tls_cipher;
+    const signature = tls.signature_algorithm || tls.tls_signature_algorithm;
 
-        const days = tls.days_left;
-
-        tlsExpiry.textContent =
-            Number.isFinite(days)
-                ? `Días hasta la caducidad: ${days}`
-                : "Caducidad no disponible";
+    if (valid) {
+        setStatus(tlsStatus, "✓ Certificado verificado", "ok");
+        tlsExpiry.textContent = Number.isFinite(days)
+            ? `${days} días restantes` : "Caducidad no disponible";
     } else if (tls.valid === false) {
         setStatus(tlsStatus, "Certificado TLS no válido", "error");
         tlsExpiry.textContent = tls.error || "";
@@ -57,27 +98,92 @@ function displayTLS(tls) {
         setStatus(tlsStatus, "Certificado TLS no comprobado", "warning");
         tlsExpiry.textContent = tls.error || "No se pudo verificar el certificado.";
     }
+
+    if (!valid) return;
+
+    const summaryGrid = document.createElement("div");
+    summaryGrid.className = "wg-tls-grid";
+    const addMetric = (label, value) => {
+        const metric = document.createElement("div");
+        metric.className = "wg-tls-metric";
+        const caption = document.createElement("span");
+        caption.className = "wg-tls-label";
+        caption.textContent = label;
+        const strong = document.createElement("strong");
+        strong.textContent = value || "No disponible";
+        metric.append(caption, strong);
+        summaryGrid.appendChild(metric);
+    };
+    addMetric("Caducidad", tlsPrettyDate(expiry));
+    addMetric("Protocolo negociado", version || "No disponible");
+    tlsAdvanced.appendChild(summaryGrid);
+
+    if (issuer) {
+        const issuerBox = document.createElement("div");
+        issuerBox.className = "wg-tls-issuer";
+        const label = document.createElement("span");
+        label.className = "wg-tls-label";
+        label.textContent = "Emitido por";
+        const name = document.createElement("strong");
+        name.textContent = tlsIssuerName(issuer);
+        issuerBox.append(label, name);
+        tlsAdvanced.appendChild(issuerBox);
+    }
+
+    const details = [
+        ["Cifrado negociado", cipher],
+        ["Caducidad exacta", expiry ? tlsPrettyDate(expiry, true) : null],
+        ["Algoritmo de firma", signature]
+    ].filter(([, value]) => value != null && String(value).trim() !== "");
+    if (details.length) {
+        const panel = document.createElement("details");
+        panel.className = "wg-tls-technical";
+        const summary = document.createElement("summary");
+        summary.textContent = "Detalles técnicos";
+        panel.appendChild(summary);
+        const content = document.createElement("div");
+        content.className = "wg-tls-technical-content";
+        for (const [label, value] of details) {
+            const row = document.createElement("div");
+            const caption = document.createElement("span");
+            caption.className = "wg-tls-label";
+            caption.textContent = label;
+            const text = document.createElement("span");
+            text.textContent = String(value);
+            row.append(caption, text);
+            content.appendChild(row);
+        }
+        panel.appendChild(content);
+        tlsAdvanced.appendChild(panel);
+    }
 }
 
 function displayHTTP(http) {
     const status = http.http_status ?? http.status_code;
-
-    httpStatus.textContent =
-        status != null
-            ? `Código HTTP: ${status}`
-            : (http.error || "Respuesta HTTP no disponible");
+    const hasStatus = Number.isInteger(status);
+    const statusOk = hasStatus && status >= 200 && status < 400;
+    httpStatus.className = "wg-http-state" + (!hasStatus ? " unchecked" : !statusOk ? " problem" : "");
+    httpStatus.textContent = hasStatus
+        ? `${statusOk ? "✓" : "!"} HTTP ${status}`
+        : (http.error || "Respuesta HTTP no disponible");
 
     const headers = http.headers || {};
-
     const present = http.present_count ??
-        Object.values(headers).filter(item =>
-            item && item.present === true
-        ).length;
+        Object.values(headers).filter(item => item?.present === true).length;
+    const total = http.total_headers ?? Object.keys(headers).length;
+    const measured = hasStatus && Number.isInteger(present) &&
+        Number.isInteger(total) && total > 0 && present >= 0 && present <= total;
 
-    const total = http.total_headers ??
-        Object.keys(headers).length;
-
-    headersCount.textContent = `${present}/${total}`;
+    headersCount.textContent = measured ? `${present}/${total}` : "—";
+    const percentage = measured ? (present / total) * 100 : 0;
+    const track = document.getElementById("http-headers-track");
+    document.getElementById("http-headers-fill").style.width = `${percentage}%`;
+    track.setAttribute("aria-valuenow", String(Math.round(percentage)));
+    document.getElementById("http-headers-note").textContent = measured
+        ? (total - present === 0
+            ? "Todas las cabeceras comprobadas están presentes"
+            : `${total - present} de ${total} cabeceras no detectadas`)
+        : "Cabeceras no comprobadas";
 
     headersList.replaceChildren();
 
@@ -110,6 +216,56 @@ function displayHTTP(http) {
     }
 }
 
+
+function displayRedirect(redirect) {
+    const state = document.getElementById("redirect-status");
+    const description = document.getElementById("redirect-description");
+    const httpCode = document.getElementById("redirect-http-code");
+    const hopCount = document.getElementById("redirect-hop-count");
+    const details = document.getElementById("redirect-technical");
+    const content = document.getElementById("redirect-technical-content");
+    const data = redirect && typeof redirect === "object" ? redirect : {};
+    const statuses = {
+        redirects_to_https: ["✓ Redirección HTTPS verificada", "good", "La cadena comprobada finaliza correctamente en HTTPS."],
+        no_redirect: ["No se detectó redirección", "warn", "La petición HTTP recibió una respuesta sin redirigir a HTTPS. Esto no evalúa las políticas HSTS del navegador."],
+        ends_on_http: ["La cadena termina en HTTP", "bad", "Se detectaron redirecciones, pero la cadena comprobada terminó sin HTTPS."],
+        redirect_loop: ["Bucle de redirecciones", "bad", "Se detectó una URL repetida en la cadena de redirecciones."],
+        too_many_redirects: ["Cadena demasiado larga", "warn", "Se alcanzó el límite de saltos sin verificar el destino final."],
+        external_redirect_unverified: ["Destino externo no verificado", "warn", "La redirección sale del dominio analizado. Por seguridad no se ha seguido."],
+        unsupported_redirect: ["Destino no admitido", "warn", "La redirección utiliza un esquema, credenciales o puerto no permitido."],
+        connection_error: ["Error de conexión", "warn", "No se pudo completar la comprobación; no se considera un fallo de configuración confirmado."],
+        http_error_status: ["Respuesta HTTP de error", "warn", "El servidor respondió con un código de error; no se ha confirmado la redirección."],
+        invalid_domain: ["Dominio no válido", "warn", "No se pudo comprobar el dominio indicado."],
+        unknown: ["Sin resultado verificable", "", "No hay información suficiente para clasificar la redirección."]
+    };
+    const [label, severity, message] = statuses[data.status] || statuses.unknown;
+    state.textContent = label;
+    state.className = "wg-redirect-state" + (severity ? " " + severity : "");
+    description.textContent = message;
+    httpCode.textContent = Number.isInteger(data.http_status) ? String(data.http_status) : "—";
+    hopCount.textContent = Number.isInteger(data.hop_count) ? String(data.hop_count) : "—";
+    details.open = false;
+    content.replaceChildren();
+    const rows = [];
+    if (data.final_url) rows.push(["Última URL comprobada", data.final_url]);
+    if (data.location) rows.push(["Cabecera Location", data.location]);
+    if (data.error) rows.push(["Error técnico", data.error]);
+    if (Array.isArray(data.hops)) {
+        data.hops.forEach((hop, index) => {
+            rows.push([`Salto ${index + 1}`, `${hop.from || "?"} → ${hop.to || "?"} (HTTP ${hop.status ?? "?"})`]);
+        });
+    }
+    details.hidden = rows.length === 0;
+    for (const [labelText, value] of rows) {
+        const line = document.createElement("div");
+        const name = document.createElement("strong");
+        name.textContent = labelText + ": ";
+        const text = document.createElement("span");
+        text.textContent = String(value);
+        line.append(name, text);
+        content.appendChild(line);
+    }
+}
 
 function displayRecommendations(recommendations) {
     recommendationsList.replaceChildren();
@@ -218,6 +374,7 @@ analyzeForm.addEventListener("submit", async event => {
         resultDomain.textContent = data.domain;
         displayTLS(data.tls || {});
         displayHTTP(data.http || {});
+        displayRedirect(data.redirect);
         displayRecommendations(data.recommendations);
 
         monitorResultsPlaceholder.hidden = true;
@@ -532,6 +689,7 @@ function renderDomainsTable() {
             tlsBadge.classList.add("status-unchecked");
         }
 
+        tlsBadge.title = tlsTooltip(latest);
         createDomainCell(row, tlsBadge);
 
         // 4. Último análisis
@@ -1742,6 +1900,7 @@ async function loadClientDomains(clientId, container) {
                 tlsBadge.classList.add("status-unchecked");
             }
 
+            tlsBadge.title = tlsTooltip(latest);
             domainInfo.appendChild(tlsBadge);
 
             metrics.append(

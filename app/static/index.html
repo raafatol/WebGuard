@@ -7,6 +7,103 @@
     <title>WebGuard | Website Security Monitoring</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/script.js" defer></script>
+
+<style>
+/* TLS avanzado: estilos aislados para no alterar el resto de WebGuard */
+#tls-advanced.tls-advanced-details { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+#tls-advanced .wg-tls-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 13px; border-top: 1px solid #34445c; }
+#tls-advanced .wg-tls-metric { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+#tls-advanced .wg-tls-label { display: block; font-size: 11px; font-weight: 500; color: #9baec8; }
+#tls-advanced strong { display: block; font-size: 13px; font-weight: 600; line-height: 1.5; color: #f2f6ff; overflow-wrap: anywhere; }
+#tls-advanced .wg-tls-issuer { display: flex; flex-direction: column; gap: 5px; padding: 12px; background: #223248; border: 1px solid #30425a; border-radius: 9px; }
+#tls-advanced .wg-tls-technical { border-top: 1px solid #34445c; padding-top: 10px; }
+#tls-advanced .wg-tls-technical summary { cursor: pointer; color: #55b9ff; font-size: 12px; font-weight: 600; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+#tls-advanced .wg-tls-technical summary::-webkit-details-marker { display: none; }
+#tls-advanced .wg-tls-technical summary::after { content: '⌄'; font-size: 18px; line-height: 1; transition: transform .15s ease; }
+#tls-advanced .wg-tls-technical[open] summary::after { transform: rotate(180deg); }
+#tls-advanced .wg-tls-technical-content { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; }
+#tls-advanced .wg-tls-technical-content > div { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #e4edfa; overflow-wrap: anywhere; }
+@media (max-width: 440px) { #tls-advanced .wg-tls-grid { grid-template-columns: 1fr; } }
+
+/* Equilibrio visual: tarjetas independientes y HTTP con métricas reales */
+#results .cards { align-items: start; }
+#results .cards > .card { min-width: 0; height: auto; align-self: start; }
+#results .wg-http-state { display: flex; align-items: center; gap: 8px; margin: 8px 0 16px; color: #34d399; font-weight: 650; font-size: 15px; }
+#results .wg-http-state.unchecked { color: #9baec8; }
+#results .wg-http-state.problem { color: #fbbf24; }
+#results .wg-http-section { padding-top: 14px; border-top: 1px solid #34445c; }
+#results .wg-http-label { display: block; font-size: 12px; color: #9baec8; margin-bottom: 6px; }
+#results .wg-http-count { font-size: 30px; font-weight: 750; letter-spacing: -.03em; color: #f2f6ff; line-height: 1.3; }
+#results .wg-http-track { height: 7px; border-radius: 999px; background: #34445c; overflow: hidden; margin: 12px 0 9px; }
+#results .wg-http-fill { height: 100%; width: 0; border-radius: inherit; background: #f59e0b; transition: width .2s ease; }
+#results .wg-http-note { font-size: 12px; color: #9baec8; }
+
+
+/* Corrección definitiva: mayor especificidad que los estilos globales
+   de Monitorización, para impedir que vuelvan a aparecer dos columnas. */
+#section-monitoring #results > .cards {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-flow: row !important;
+    gap: 14px;
+    width: 100%;
+}
+#section-monitoring #results > .cards > .card {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Resultados: tarjetas apiladas, sin columnas de distinta altura. */
+#results > .cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+#results > .cards > .card { width: 100%; min-width: 0; height: auto; }
+
+/* TLS compacto: información principal en una fila y datos en columnas. */
+#results > .cards > .card:first-child { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 20px; row-gap: 9px; }
+#results > .cards > .card:first-child h3 { grid-column: 1 / -1; margin-bottom: 2px; }
+#results > .cards > .card:first-child #tls-status { margin: 0; }
+#results > .cards > .card:first-child #tls-expiry { margin: 0; text-align: right; white-space: nowrap; }
+#results #tls-advanced.tls-advanced-details { grid-column: 1 / -1; margin-top: 2px; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: stretch; gap: 12px; }
+#results #tls-advanced .wg-tls-grid { padding: 10px 0; align-items: center; }
+#results #tls-advanced .wg-tls-issuer { justify-content: center; padding: 10px 12px; }
+#results #tls-advanced .wg-tls-technical { grid-column: 1 / -1; }
+
+/* HTTP horizontal, con las métricas ocupando todo el ancho. */
+#results > .cards > .card:nth-child(2) { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px 20px; }
+#results > .cards > .card:nth-child(2) h3 { margin: 0; }
+#results > .cards > .card:nth-child(2) .wg-http-state { margin: 0; justify-self: end; }
+#results > .cards > .card:nth-child(2) .wg-http-section { grid-column: 1 / -1; padding-top: 10px; }
+#results > .cards > .card:nth-child(2) .wg-http-track { margin: 7px 0; }
+
+@media (max-width: 640px) {
+  #results > .cards > .card:first-child { grid-template-columns: minmax(0, 1fr); }
+  #results > .cards > .card:first-child #tls-expiry { text-align: left; white-space: normal; }
+  #results #tls-advanced.tls-advanced-details { grid-template-columns: minmax(0, 1fr); }
+  #results > .cards > .card:nth-child(2) { grid-template-columns: minmax(0, 1fr); }
+  #results > .cards > .card:nth-child(2) .wg-http-state { justify-self: start; }
+}
+
+
+/* Redirección HTTP → HTTPS: tarjeta apilada, aislada del diseño TLS/HTTP */
+#results .wg-redirect-card { display: flex; flex-direction: column; gap: 11px; }
+#results .wg-redirect-card h3 { margin: 0; }
+#results .wg-redirect-state { font-size: 14px; font-weight: 650; color: #9baec8; }
+#results .wg-redirect-state.good { color: #34d399; }
+#results .wg-redirect-state.warn { color: #fbbf24; }
+#results .wg-redirect-state.bad { color: #fb7185; }
+#results .wg-redirect-description { color: #aebdd1; font-size: 13px; line-height: 1.55; margin: 0; }
+#results .wg-redirect-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 12px; border-top: 1px solid #34445c; }
+#results .wg-redirect-metrics > div { display: flex; flex-direction: column; gap: 4px; }
+#results .wg-redirect-metrics span { color: #9baec8; font-size: 11px; }
+#results .wg-redirect-metrics strong { color: #f2f6ff; font-size: 14px; }
+#results .wg-redirect-technical { border-top: 1px solid #34445c; padding-top: 10px; }
+#results .wg-redirect-technical summary { cursor: pointer; color: #55b9ff; font-size: 12px; font-weight: 600; }
+#results #redirect-technical-content { padding-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-wrap: anywhere; color: #cbd5e1; font-size: 12px; }
+@media(max-width: 440px) { #results .wg-redirect-metrics { grid-template-columns: 1fr; } }
+
+</style>
 </head>
 <body>
 
@@ -1115,16 +1212,34 @@
                         <h3>Certificado TLS</h3>
                         <p id="tls-status"></p>
                         <p id="tls-expiry"></p>
+                        <div id="tls-advanced" class="tls-advanced-details"></div>
                     </article>
 
                     <article class="card">
                         <h3>Respuesta HTTP</h3>
-                        <p id="http-status"></p>
+                        <div id="http-status" class="wg-http-state" role="status"></div>
+                        <div class="wg-http-section">
+                            <span class="wg-http-label">Cabeceras de seguridad</span>
+                            <div id="headers-count" class="wg-http-count">—</div>
+                            <div id="http-headers-track" class="wg-http-track" role="progressbar" aria-label="Cabeceras de seguridad detectadas" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                                <div id="http-headers-fill" class="wg-http-fill"></div>
+                            </div>
+                            <div id="http-headers-note" class="wg-http-note">Pendiente de análisis</div>
+                        </div>
+                    </article>
 
-                        <p>
-                            Cabeceras detectadas:
-                            <strong id="headers-count"></strong>
-                        </p>
+                    <article class="card wg-redirect-card" aria-labelledby="wg-redirect-title">
+                        <h3 id="wg-redirect-title">Redirección HTTP → HTTPS</h3>
+                        <div id="redirect-status" class="wg-redirect-state" role="status">Pendiente de análisis</div>
+                        <p id="redirect-description" class="wg-redirect-description">Todavía no se ha comprobado la redirección.</p>
+                        <div class="wg-redirect-metrics">
+                            <div><span>Respuesta HTTP</span><strong id="redirect-http-code">—</strong></div>
+                            <div><span>Saltos</span><strong id="redirect-hop-count">—</strong></div>
+                        </div>
+                        <details id="redirect-technical" class="wg-redirect-technical" hidden>
+                            <summary>Detalles técnicos</summary>
+                            <div id="redirect-technical-content"></div>
+                        </details>
                     </article>
 
                 </div>

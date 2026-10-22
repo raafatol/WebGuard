@@ -63,3 +63,34 @@ def detect_changes(previous, current):
             })
 
     return changes
+
+# Solo estos estados permiten concluir si el servidor terminó en HTTPS.
+_REDIRECT_SECURE = 'redirects_to_https'
+_REDIRECT_INSECURE = {'no_redirect', 'ends_on_http'}
+
+
+def detect_redirect_changes(previous, current):
+    """Detecta pérdidas y recuperaciones confirmadas de redirección HTTPS.
+
+    Los resultados no concluyentes (errores, bucles, destinos externos,
+    registros antiguos sin medición) no se consideran fallos confirmados.
+    """
+    old = previous.get('redirect')
+    new = current.get('redirect')
+    if not isinstance(old, dict) or not isinstance(new, dict):
+        return []
+    before, after = old.get('status'), new.get('status')
+    if before == _REDIRECT_SECURE and after in _REDIRECT_INSECURE:
+        return [{
+            'type': 'redirect_https_lost',
+            'severity': 'warning',
+            'message': ('La redirección HTTP → HTTPS antes verificada ha dejado '
+                        'de funcionar. Estado actual: ' + after + '.'),
+        }]
+    if before in _REDIRECT_INSECURE and after == _REDIRECT_SECURE:
+        return [{
+            'type': 'redirect_https_restored',
+            'severity': 'info',
+            'message': 'Se ha recuperado la redirección HTTP → HTTPS verificada.',
+        }]
+    return []

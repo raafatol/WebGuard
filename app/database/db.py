@@ -1,4 +1,3 @@
-
 import sqlite3
 from pathlib import Path
 
@@ -186,4 +185,18 @@ def init_db():
             ON email_notifications (status, created_at)
         """)
 
+        # Migración TLS avanzado: mantiene intactos los registros anteriores.
+        analysis_columns = {row[1] for row in connection.execute("PRAGMA table_info(analyses)")}
+        for column in (
+            "tls_expiry_date", "tls_issuer", "tls_version",
+            "tls_cipher", "tls_signature_algorithm"
+        ):
+            if column not in analysis_columns:
+                connection.execute(f"ALTER TABLE analyses ADD COLUMN {column} TEXT")
+
+        # Estado del primer salto HTTP; NULL en análisis históricos.
+        if "redirect_json" not in analysis_columns:
+            connection.execute("ALTER TABLE analyses ADD COLUMN redirect_json TEXT")
+
         connection.commit()
+
